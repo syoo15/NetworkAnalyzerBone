@@ -52,7 +52,7 @@ $(document).ready(function() {
 	zAxis.titleColor = "#FF6600";
 	zAxis.axisAlpha = 0;
 	zAxis.autoGridCount = true;
-	//yAxis.logarithmic = true;
+	zAxis.logarithmic = true;
 	chart.addValueAxis(zAxis);
 	
 	// Phase
@@ -76,7 +76,7 @@ $(document).ready(function() {
 	graph1.yField = "z";
 	graph1.lineAlpha = 0.5;
 	graph1.lineThickness = 2;
-	graph1.bullet = "round";
+	//graph1.bullet = "round";
 	chart.addGraph(graph1);
 
 	var graph2 = new AmCharts.AmGraph();
@@ -87,7 +87,7 @@ $(document).ready(function() {
 	graph2.yField = "phi";
 	graph2.lineAlpha = 0.5;
 	graph2.lineThickness = 2;
-	graph2.bullet = "round";
+	//graph2.bullet = "round";
 	chart.addGraph(graph2);
 	// CURSOR
 	var chartCursor = new AmCharts.ChartCursor();
@@ -108,7 +108,7 @@ $(document).ready(function() {
             }
             else {
                 $("#statustext").html("Device address " + 
-                	data.DeviceAddress);
+                	data.DeviceAddress + " Temperature: " + data.Temperature + " deg C");
                 $("#StartFreq").val(100);
                 $("#IncrFreq").val(1000);
                 $("#NumSteps").val(10);
@@ -150,6 +150,7 @@ $(document).ready(function() {
             //console.log(chartData);  
             chart.validateData();  
             chart.validateNow();    
+            alert("Done");
             });
         });
     });

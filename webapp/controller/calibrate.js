@@ -2,12 +2,12 @@ var i2c = require('./i2cbase');
 
 var fs = require('fs');
 
-var startf = 100; 
+var startf = 50; 
 var incr = 10; 
-var zcal = 100000;
-var steps = 510;
+var zcal = 503.15;
+var steps = 295;
 
-var file = fs.createWriteStream('./cal100_10_1k_2k.txt');
+var file = fs.createWriteStream('./cal_100_503_low.txt');
 
 var myparams = {start:startf, increment:incr, steps:steps}
 

@@ -73,14 +73,24 @@ var VALID_DFT_DATA =        0x2;
 var SWEEP_COMPLETE =        0x4;
 
 // Global variables
-var output_range = OUTPUT_2VPP;
+var output_range = OUTPUT_1VPP;
 var pga_gain = PGA_GAIN1X;
 var clock_source = EXTERNAL_CLK;
 var test_frequency;
 var frequency_increment;
-var SYSTEM_PHASE = 1.5; // works well up to 47k frequency
 
 var i2c = require('i2c');
+var b = require('bonescript'); 
+b.analogWrite('P8_13', 0.5, 100000, function(x) {console.log(x);});
+
+function clock_rate(source) {
+    var clock_rate = 16.78E6;
+    if(clock_source == EXTERNAL_CLK) {
+        clock_rate = 100E3;
+    }
+    return(clock_rate);
+}
+
 
 var wire = new i2c(DEVICE_ADDRESS); 
 // associates with first i2c bus by default
@@ -315,9 +325,9 @@ exports.deviceParameters = function() {
 			//console.log(res);
 			parameters["Control"] = (res[0] << 8) | res[1];
 			parameters["StartFrequency"] = get_frequency(
-							(res[2] << 16) | (res[3] << 8) | res[4], 16e6);
+							(res[2] << 16) | (res[3] << 8) | res[4], clock_rate());
 			parameters["Increment"] = get_frequency(
-							(res[5] << 16) | (res[6] << 8) | res[7], 16e6);
+							(res[5] << 16) | (res[6] << 8) | res[7], clock_rate());
 			parameters["NumIncrements"] = 
 							((res[8]&1) << 8) | res[9];
 			parameters["SettlingCyclesMult"] = (res[10]>>1)&3;
@@ -336,8 +346,8 @@ exports.deviceParameters = function() {
 function programSweep(sweepParameters) {
 	reset_device();
 	var data = [];
-	var start = get_frequency_code(parseInt(sweepParameters.start), 16e6);
-	var incr = get_frequency_code(parseInt(sweepParameters.increment), 16e6); 
+	var start = get_frequency_code(parseInt(sweepParameters.start), clock_rate());
+	var incr = get_frequency_code(parseInt(sweepParameters.increment), clock_rate()); 
 	
 	//console.log(sweepParameters.start);
 	test_frequency = parseInt(sweepParameters.start);
@@ -355,7 +365,7 @@ function programSweep(sweepParameters) {
 	data[7] = (parseInt(sweepParameters.steps) >> 8) & 0xFF;
 	data[8] = parseInt(sweepParameters.steps) & 0xFF;
 	data[9] = 0; 
-	data[10] = 30; // 30 settling cycles - may change in a future version
+	data[10] = 10; // 10 settling cycles - may change in a future version
 	
 	//console.log(data);
 	
