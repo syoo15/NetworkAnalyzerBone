@@ -94,6 +94,7 @@ var wire = new i2c(DEVICE_ADDRESS);
 // associates with first i2c bus by default
 
 var gf = require('./gainfactor');
+var fs = require('fs');
 
 // Helper functions
 
@@ -402,6 +403,22 @@ function i2cdump(str) {
     
 function runSweep(sweepParameters, calib) {
 	// we pipe a calib parameter to the magnitude / phase calculation functions
+	var baseline = fs.readFileSync("/home/debian/NetworkAnalyzer/webapp/controller/fertile_training.csv", "utf8");
+	baseline = baseline.split("\n");
+	//console.log(baseline.length);
+
+    baseline_dict = {};
+    
+    for(var i=1; i<baseline.length-1; i++) {
+        record = baseline[i].split(','); 
+        baseline_dict[record[0]] = {"zmean" : record[1], 
+                                    "zsd" : record[2], 
+                                    "phimean" : record[3], 
+                                    "phisd" :record[4],
+                                    }
+        }
+    //console.log(baseline_dict); 
+    
 	var result = {}; 
 	reset_device();
 	//i2cdump("reset"); 
@@ -416,7 +433,11 @@ function runSweep(sweepParameters, calib) {
 	result["SweepParameters"] = sweepParameters;
 	result["TimeStarted"] = new Date().toString();
 	result["ImpedanceMod"] = [];
+	result["ImpedanceModAvg"] = []; 
+	result["ImpedanceModSd"] = []; 
 	result["ImpedanceArg"] = [];
+	result["ImpedanceArgAvg"] = []; 
+	result["ImpedanceArgSd"] = []; 
 	result["Frequency"] = [];
 	
 	programSweep(sweepParameters);
@@ -453,6 +474,12 @@ function runSweep(sweepParameters, calib) {
 					complex.imag = twos_comp_to_dec((res[2]<<8)|res[3]);
 					result["Frequency"].push(test_frequency);
 					result["ImpedanceMod"].push(mod_cplx(complex, calib));
+                    if(baseline_dict[test_frequency.toString()] != undefined) {
+                        result["ImpedanceModAvg"].push(baseline_dict[test_frequency.toString()].zmean);
+                        result["ImpedanceModSd"].push(baseline_dict[test_frequency.toString()].zsd);
+                        result["ImpedanceArgAvg"].push(baseline_dict[test_frequency.toString()].phimean);
+                        result["ImpedanceArgSd"].push(baseline_dict[test_frequency.toString()].phisd);
+                        }
 					result["ImpedanceArg"].push(arg_cplx(complex, calib));
 					}
 				else {
