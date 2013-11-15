@@ -4,51 +4,26 @@ block bodycontainer
   .starter-template
     h1 Network impedance analyzer
     p.lead A part of the openBioinstrumentation suite
-  h3
-    a#control
-    | Current status of the device
-  .row
-    .col-md-12
-      button.btn.btn-default.btn-sm(type='button', id="ButtonRefresh")
-        i.glyphicon.glyphicon-refresh
-          | &nbsp;Refresh
-      span#statustext
-  p
-    | Last refreshed:
-    span#date
-  h3 Frequency sweep parameters
-  .row
-    .col-md-4
-      .input-group
-        span.input-group-addon Start
-        input.form-control(type='text', placeholder='Frequency', id="StartFreq")
-        span.input-group-addon Hz
-    .col-md-4
-      .input-group
-        span.input-group-addon Increment
-        input.form-control(type='text', placeholder='Frequency', id="IncrFreq")
-        span.input-group-addon Hz
-    .col-md-4
-      .input-group
-        span.input-group-addon Steps
-        input.form-control(type='text', placeholder='Num Steps', id="NumSteps")
-        span.input-group-addon #
+  h3 Current status:
+  span#statustext 
+  p Last Refreshed:&nbsp;
+        span#date
+        
   div
-    button.btn.btn-default(type='button', id="ButtonSweep")
+    button.btn.btn-default(type='button', id="ButtonSweepLow" data-loading-text="Running")
       i.glyphicon.glyphicon-transfer
-        | &nbsp;Sweep
-  h3 Progress
-  .progress.progress-striped.active
-    .bar(style='width: 0%;')
-  p Current frequency sweep parameters are shown below
+        | &nbsp;Sweep Low
+        
+    button.btn.btn-default(type='button', id="ButtonSweepHigh" data-loading-text="Running")
+      i.glyphicon.glyphicon-transfer
+        | &nbsp;Sweep High
+    p
+   
+  div       
+    .progress
+      .progress-bar(role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;")
+    
   h3 Impedance Plots
-  .row
-    .col-md-12
-      .input-group
-        span.input-group-addon Current file
-        input.form-control(type="text", placeholder="untitled", id="FormFilename")
-        span.input-group-addon .json
-
   div
     button.btn.btn-default(type='button', id="ButtonSave")
       i.glyphicon.glyphicon-save
@@ -64,18 +39,43 @@ block bodycontainer
         | &nbsp;Analyze
             
   #gaindiv(style='width: 640px; height: 400px;')
+        
+  h3 Preferences
+  a#preferences
 
-  h3
-    a#preferences
-    | Preferences
-  p List of preferences can be set here. 
-  h3
-    a#help
-    | Help
-  p Some help on how to use the device
-  h3
-    a#contact
-    | Contact
-  p For more information contact... 
+  h4 Frequency sweep parameters (100-3000 Hz)
+  .row
+    .col-md-4
+      .input-group
+        span.input-group-addon Start
+        input.form-control(type='text', placeholder='Frequency', id="StartFreqL")
+        span.input-group-addon Hz
+    .col-md-4
+      .input-group
+        span.input-group-addon Increment
+        input.form-control(type='text', placeholder='Frequency', id="IncrFreqL")
+        span.input-group-addon Hz
+    .col-md-4
+      .input-group
+        span.input-group-addon Steps
+        input.form-control(type='text', placeholder='Num Steps', id="NumStepsL")
+  
+  h4 Frequency sweep parameters (1000-10000 Hz)  
+  .row
+    .col-md-4
+      .input-group
+        span.input-group-addon Start
+        input.form-control(type='text', placeholder='Frequency', id="StartFreqH")
+        span.input-group-addon Hz
+    .col-md-4
+      .input-group
+        span.input-group-addon Increment
+        input.form-control(type='text', placeholder='Frequency', id="IncrFreqH")
+        span.input-group-addon Hz
+    .col-md-4
+      .input-group
+        span.input-group-addon Steps
+        input.form-control(type='text', placeholder='Num Steps', id="NumStepsH")
+
 
 

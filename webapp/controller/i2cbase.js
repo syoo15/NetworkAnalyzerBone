@@ -47,13 +47,13 @@ var BLOCK_READ_CMD =        0xA1;
 var ADDRESS_POINTER_CMD =   0xB0
 // Control Register 
 // See Table 9
-var INIT_WITH_START_FREQ =  0x1000; 
-var START_FREQ_SWEEP =      0x2000;
-var INCREMENT_FREQ =        0x3000;
-var REPEAT_FREQ =           0x4000;
-var MEASURE_TEMP =          0x9000;
-var POWER_DOWN_MODE =       0xA000; //default upon powerup
-var STANDBY_MODE =          0xB000;
+var INIT_WITH_START_FREQ =  0x10; 
+var START_FREQ_SWEEP =      0x20;
+var INCREMENT_FREQ =        0x30;
+var REPEAT_FREQ =           0x40;
+var MEASURE_TEMP =          0x90;
+var POWER_DOWN_MODE =       0xA0; //default upon powerup
+var STANDBY_MODE =          0xB0;
 
 var OUTPUT_2VPP =           0x0; // default
 var OUTPUT_200MVPP =        0x2;
@@ -75,13 +75,11 @@ var SWEEP_COMPLETE =        0x4;
 // Global variables
 var output_range = OUTPUT_1VPP;
 var pga_gain = PGA_GAIN1X;
-var clock_source = EXTERNAL_CLK;
+var clock_source = INTERNAL_CLK;
 var test_frequency;
 var frequency_increment;
 
 var i2c = require('i2c');
-//var b = require('bonescript'); 
-//b.analogWrite('P8_13', 0.5, 100000, function(x) {console.log(x);});
 
 function clock_rate(source) {
     var clock_rate = 16.78E6;
@@ -131,7 +129,7 @@ function write_data_bytes(register, data) {
 function set_device_standby() {
 	// Only R_CONTROL0 will be overwritten. 
 	//console.log("Standby");
-	var control_byte = upper_byte(STANDBY_MODE) | output_range | pga_gain;
+	var control_byte = STANDBY_MODE | output_range | pga_gain;
 	write_data_bytes(R_CONTROL0, [control_byte]); 
 }
 
@@ -148,33 +146,33 @@ function reset_device() {
 }
 
 function program_init() {
-	var control_byte = upper_byte(INIT_WITH_START_FREQ) | output_range | pga_gain;
+	var control_byte = INIT_WITH_START_FREQ | output_range | pga_gain;
 	write_data_bytes(R_CONTROL0, [control_byte]);
 	//console.log("Program init: " + control_byte);
 }
 
 function start_sweep() {
-    var control_byte = upper_byte(START_FREQ_SWEEP) | output_range | pga_gain;
+    var control_byte = START_FREQ_SWEEP | output_range | pga_gain;
 	write_data_bytes(R_CONTROL0, [control_byte]);
 	//console.log("Start sweep: " + control_byte);
 }
 
 function increment_frequency_step() {
 	//console.log("Increment sweep");
-	var control_byte = upper_byte(INCREMENT_FREQ | output_range | pga_gain);
+	var control_byte = INCREMENT_FREQ | output_range | pga_gain;
 	write_data_bytes(R_CONTROL0, [control_byte]);
 	test_frequency += frequency_increment;
 }
 
 function repeat_frequency() {
 	//console.log("Repeat frequency");
-	var control_byte = upper_byte(REPEAT_FREQ | output_range | pga_gain);
+	var control_byte = REPEAT_FREQ | output_range | pga_gain;
 	write_data_bytes(R_CONTROL0, [control_byte]); 
 }
 
 function power_down_device() {
     //console.log("Power Down");
-	var control_byte = upper_byte(POWER_DOWN_MODE);
+	var control_byte = POWER_DOWN_MODE;
 	write_data_bytes(R_CONTROL0, [control_byte]);
 }
 
@@ -269,17 +267,17 @@ function sleep(time, callback) {
 function measure_temperature() {
 	//console.log("measuring temp");
 	var temperature;
-	var control_byte = upper_byte(MEASURE_TEMP | output_range | pga_gain);
-	wire.writeBytes(R_CONTROL0, [control_byte], 
-		function(err) {"Error in writebytes: " + err});
+	var control_byte = MEASURE_TEMP;
+	point_to_address(R_CONTROL0); 
+	wire.writeByte(control_byte, function(err) {"Error in pointer: " + err});
 	// This should set off temperature measurement
-	sleep(100, function() {});
+	sleep(10, function() {});
 	if(read_status()["Valid_Temp"]) {
 		point_to_address(R_TEMP0);
 		wire.readBytes(BLOCK_READ_CMD, 2, function(err, res) {
 			if(err == null) {
 				var temp_code = (res[0] << 8) | res[1];
-				////console.log("Temp code: " + temp_code);
+				//console.log("Temp code: " + temp_code);
 				if((temp_code >>13) &1) {
 					var temp = (temp_code - 16384)/32;
 				}
@@ -313,7 +311,7 @@ function measure_temperature() {
 
 exports.deviceParameters = function() {
 	
-	set_clock_source(EXTERNAL_CLK);
+	set_clock_source(INTERNAL_CLK);
 	
 	var parameters = {};
 	parameters["DeviceAddress"] = DEVICE_ADDRESS;
@@ -333,7 +331,10 @@ exports.deviceParameters = function() {
 			parameters["SettlingCyclesMult"] = (res[10]>>1)&3;
 			parameters["SettlingCycles"] = (res[10]&1) | res[11];
 			parameters["Status"] = read_status();
+			parameters["PGA"] = res[0] & 1;
+			parameters["ExcitationVolts"] = (res[0] >1) &3;
 			parameters["Temperature"] = measure_temperature();
+
 		}
 		else {
 			error_msg(err);
@@ -380,8 +381,8 @@ function poll_for_valid_data() {
 	var valid = false;
 	while(!valid) {
 		var status = read_status();
-		//console.log(status);
-		sleep(100, function() {});
+		//console.log(status); 
+		sleep(5, function() {});
 		valid = status["Valid_Data"];
 	}
 	return (valid);
@@ -390,6 +391,14 @@ function poll_for_valid_data() {
 function runSweep(sweepParameters, calib) {
 	// we pipe a calib parameter to the magnitude / phase calculation functions
 	var result = {}; 
+	
+	if(sweepParameters.range == "H") {
+	    clock_source = INTERNAL_CLK;
+	}
+	else {
+	    clock_source = EXTERNAL_CLK;
+	}
+	    
 	result["SweepParameters"] = sweepParameters;
 	result["TimeStarted"] = new Date().toString();
 	result["Temperature"] = measure_temperature();
@@ -398,8 +407,9 @@ function runSweep(sweepParameters, calib) {
 	result["Frequency"] = [];
 	
 	programSweep(sweepParameters);
-	set_device_standby();
 	set_clock_source(clock_source);
+	set_device_standby();
+
 	program_init();
 	sleep(30, start_sweep);
 
@@ -419,7 +429,7 @@ function runSweep(sweepParameters, calib) {
 			point_to_address(R_REAL0);
 			wire.readBytes(BLOCK_READ_CMD, 4, function(err,res) {
 				if(err == null) {
-					//console.log("Step: " + counter);
+					console.log("Step: " + counter);
 					var complex = {};
 					complex.real = twos_comp_to_dec((res[0]<<8)|res[1]);
 					complex.imag = twos_comp_to_dec((res[2]<<8)|res[3]);
@@ -438,7 +448,7 @@ function runSweep(sweepParameters, calib) {
 		increment_frequency_step();
 	}
 	
-	power_down_device;			
+	power_down_device();			
 	//console.log("Done!");
 	return(result);
 }
