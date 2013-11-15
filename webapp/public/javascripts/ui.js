@@ -111,11 +111,11 @@ $(document).ready(function() {
             else {
                 $("#statustext").html("Device address: " + 
                 	data.DeviceAddress + " Temperature: " + data.Temperature + "&deg;C");
-                $("#StartFreqL").val(100);
-                $("#IncrFreqL").val(25);
-                $("#NumStepsL").val(100);
-                $("#StartFreqH").val(1000);
-                $("#IncrFreqH").val(250);
+                $("#StartFreqL").val(50);
+                $("#IncrFreqL").val(100);
+                $("#NumStepsL").val(40);
+                $("#StartFreqH").val(4000);
+                $("#IncrFreqH").val(160);
                 $("#NumStepsH").val(100);
             }
             refreshDate();

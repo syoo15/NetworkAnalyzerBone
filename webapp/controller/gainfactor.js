@@ -2,7 +2,7 @@
  * 10k 1% resistor
  */
 
-var filename = "/home/debian/NetworkAnalyzer/webapp/controller/SmoothCal.txt";
+var filename = "/home/debian/NetworkAnalyzer/webapp/controller/SmoothCal2.txt";
 
 //console.log(__dirname);
 var fs = require('fs');
