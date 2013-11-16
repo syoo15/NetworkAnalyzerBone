@@ -3,7 +3,7 @@ $(document).ready(function() {
         alert("Trying to save");
     });
     $("#ButtonRefresh").click(function() {
-        $.get('/refresh/', function(data, status) {
+        $.get('/refresh', function(data, status) {
             alert(data);
         });
     });
@@ -11,9 +11,10 @@ $(document).ready(function() {
         var start = $("#StartFreq").val();
         var increment = $("#IncrFreq").val();
         var numsteps = $("#NumSteps").val();
-        $.get('/sweep/' + start + '/' + increment + '/' + numsteps, 
-            function(data, status) {
-            alert(data);
+        var data = {"start":start, "increment":increment, "steps":numsteps};
+        $.post('/sweep/', data,
+            function(response, status) {
+            alert(response);
         });
     });
     $("#ButtonSave").click(function() {

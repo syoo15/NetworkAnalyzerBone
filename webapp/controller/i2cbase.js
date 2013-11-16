@@ -2,7 +2,7 @@
  * I2C module wrapper
  */
  
-var  = function() {
+var dev = function() {
   deviceAddress = 0x09;
   var i2c = require('i2c');
   

@@ -46,8 +46,9 @@ app.get('/open', function(req, res){
   res.send("opened");
   });
   
-app.post('/sweep/:sweep', function(req, res){
-  res.send("swept");
+app.post('/sweep/', function(req, res){
+  console.log(JSON.stringify(req.body));
+  res.send("swept" + req.body.start + req.body.steps);
   });
   
 app.post('/analyze/:file', function(req, res){
