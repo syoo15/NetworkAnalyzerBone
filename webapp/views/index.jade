@@ -1,0 +1,84 @@
+extends layout
+
+block bodycontainer
+  .starter-template
+    h1 Network impedance analyzer
+    p.lead A part of the openBioinstrumentation suite
+  h3
+    a#control
+    | Current status of the device
+  .row
+    .col-md-12
+      button.btn.btn-default.btn-sm(type='button', id="ButtonRefresh")
+        i.glyphicon.glyphicon-refresh
+          | &nbsp;Refresh
+      | Status text.
+  p
+    | Last refreshed:
+    span#date
+  h3 Frequency sweep parameters
+  .row
+    .col-md-4
+      .input-group
+        span.input-group-addon Start
+        input.form-control(type='text', placeholder='Frequency', id="StartFreq")
+        span.input-group-addon Hz
+    .col-md-4
+      .input-group
+        span.input-group-addon Increment
+        input.form-control(type='text', placeholder='Frequency', id="IncrFreq")
+        span.input-group-addon Hz
+    .col-md-4
+      .input-group
+        span.input-group-addon Steps
+        input.form-control(type='text', placeholder='Num Steps', id="NumSteps")
+        span.input-group-addon #
+  div
+    button.btn.btn-default(type='button', id="ButtonSweep")
+      i.glyphicon.glyphicon-transfer
+        | &nbsp;Sweep
+  h3 Progress
+  .progress
+    .progress-bar(role='progressbar', aria-valuenow='60', aria-valuemin='0', aria-valuemax='100', style='width: 60%;')
+      span.sr-only 60% Complete
+  p Current frequency sweep parameters are shown below
+  h3 Bode Plots
+  .row
+    .col-md-12
+      .input-group
+        span.input-group-addon Current file
+        input.form-control(type="text", placeholder="untitled", id="FormFilename")
+        span.input-group-addon .json
+
+  div
+    button.btn.btn-default(type='button', id="ButtonSave")
+      i.glyphicon.glyphicon-save
+        | &nbsp;Save
+    button.btn.btn-default(type='button', id="ButtonDownload")
+      i.glyphicon.glyphicon-cloud-download
+        | &nbsp;Download
+    button.btn.btn-default(type='button', id="ButtonOpen")
+      i.glyphicon.glyphicon-open
+        | &nbsp;Open
+    button.btn.btn-default(type='button', id="ButtonAnalyze")
+      i.glyphicon.glyphicon-cog
+        | &nbsp;Analyze
+            
+  h4 Gain plot
+  #gaindiv(style='width: 640px; height: 400px;')
+  h4 Phase plot
+  #phasediv(style='width: 640px; height: 400px;')
+  h3
+    a#preferences
+    | Preferences
+  p List of preferences can be set here. 
+  h3
+    a#help
+    | Help
+  p Some help on how to use the device
+  h3
+    a#contact
+    | Contact
+  p For more information contact... 
+
+
