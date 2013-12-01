@@ -7,6 +7,8 @@ var express = require('express');
 var routes = require('./routes');
 var http = require('http');
 var path = require('path');
+var comm = require('./controller/i2cbase');
+console.log(comm);
 
 var app = express();
 
@@ -32,7 +34,8 @@ if ('development' == app.get('env')) {
 app.get('/', routes.index);
 
 app.get('/refresh', function(req, res){
-  res.send("refreshed");
+  console.log(comm.deviceAddress);
+  res.send(comm.deviceAddress);
   });
   
 app.get('/download/:file', function(req, res){
