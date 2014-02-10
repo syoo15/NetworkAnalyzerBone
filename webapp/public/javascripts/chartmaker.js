@@ -128,8 +128,4 @@ AmCharts.ready(function () {
     // WRITE                                                
     chart.write("gaindiv");
     
-    var date = new Date();
-    var field = document.getElementById("date");
-    field.innerHTML = date.toString();
-    
 });

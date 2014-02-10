@@ -7,8 +7,8 @@ var express = require('express');
 var routes = require('./routes');
 var http = require('http');
 var path = require('path');
-var comm = require('./controller/i2cbase');
-console.log(comm);
+var i2cbase = require('./controller/i2cbase.js');
+//console.log(i2cbase);
 
 var app = express();
 
@@ -31,35 +31,16 @@ if ('development' == app.get('env')) {
   app.locals.pretty = true;
 }
 
-app.get('/', routes.index);
+// GET calls - no changes to data on server
+app.get('/', routes.index); 
+app.get('/refresh', routes.refresh);
 
-app.get('/refresh', function(req, res){
-  console.log(comm.deviceAddress);
-  res.send(comm.deviceAddress);
-  });
-  
-app.get('/download/:file', function(req, res){
-  res.send("downloaded");
-  });
-  
-app.get('/open', function(req, res){
-  res.send("opened");
-  });
-  
-app.post('/sweep/', function(req, res){
-  console.log(JSON.stringify(req.body));
-  res.send("swept" + req.body.start + req.body.steps);
-  });
-  
-app.post('/analyze/:file', function(req, res){
-  res.send("analyzed");
-  });
-  
-app.post('/save/:filename', function(req, res){
-  res.send("saved");
-  });
-  
+// POST calls - may change data / parameters on server
+app.post('/sweep/', routes.sweep);
+
+
+
 
 http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
+  console.log('Impedance Analyzer server listening on port ' + app.get('port'));
 });

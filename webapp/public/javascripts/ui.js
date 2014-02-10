@@ -1,12 +1,28 @@
 $(document).ready(function() {
+	var refreshDate = function() {
+		var date = new Date();
+    	var field = document.getElementById("date");
+    	field.innerHTML = date.toString();
+    	};
+    
+    refreshDate();
+    
+    var refresh = function() {
+        $.get('/refresh', function(data, status) {
+            document.getElementById("statustext").innerHTML = data;
+            refreshDate();
+        });
+    };
+    
+    refresh();
+
+    
     $("#ButtonSave").click(function() {
         alert("Trying to save");
     });
-    $("#ButtonRefresh").click(function() {
-        $.get('/refresh', function(data, status) {
-            alert(data);
-        });
-    });
+    
+    $("#ButtonRefresh").click(refresh);
+
     $("#ButtonSweep").click(function() {
         var start = $("#StartFreq").val();
         var increment = $("#IncrFreq").val();
