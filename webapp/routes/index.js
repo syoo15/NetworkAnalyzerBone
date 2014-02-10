@@ -18,7 +18,7 @@ exports.index = function(req, res) {
 
 exports.refresh = function(req, res) {
   console.log(i2cbase.deviceAddress);
-  res.send("Device address: " + i2cbase.deviceAddress);
+  res.send(String(i2cbase.deviceAddress));
   };
   
 

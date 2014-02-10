@@ -18,7 +18,7 @@
  */
 
 // Device address
-var DEVICE_ADDRESS = 0x0D;
+var DEVICE_ADDRESS = 0x0D; // default address of the AD5933
 
 // Register map
 var R_CONTROL0 =        0x80;
@@ -75,10 +75,21 @@ var clock_source = INTERNAL_CLK;
 var sweep_setup = false;
 
 var i2c = require('i2c');
-var wire = new i2c(DEVICE_ADDRESS, {device: '/dev/i2c-1', debug: false}); 
-// associates with first i2c bus.
-// 
 
+var wire = new i2c(DEVICE_ADDRESS); 
+// associates with first i2c bus by default
+// 
+// Scan the I2C bus and make check if anything is showing. 
+
+wire.scan(function (err, data) {
+    console.log(data);
+    if(data.indexOf('0x0D') != -1) {
+        DEVICE_ADDRESS = 0x0D;
+    }
+    else {
+        DEVICE_ADDRESS = 0x0;
+    }
+});
 // Helper functions
 
 var upper_byte = function(integer) {
@@ -102,7 +113,7 @@ var point_to_address = function(address) {
 
 var set_device_standby = function() {
 	// Only R_CONTROL0 will be overwritten. 
-	var control_byte = 0b10110000 | output_range | pga_gain;
+	var control_byte = 0xB0 | output_range | pga_gain;
 	wire.writeBytes(R_CONTROL0, [control_byte],
 		error_msg(err));
 }
@@ -144,6 +155,7 @@ var power_down_device = function() {
 }
 
 var read_status = function() {
+    // obtains status register value
 	point_to_address(R_STATUS);
 	wire.readByte(function(err, res) {
 		if(err = undefined) { 
@@ -152,12 +164,35 @@ var read_status = function() {
 		else {
 			error_msg(err);
 		}
-	}
+	});
 }
+
+var get_status = function() {
+    // Parses the status register and returns a dictionary
+    status = {};
+    res = read_status();
+    
+    if(res & 1) {
+        status["Valid_Temp"] = true;
+    }
+    if((res>>1) & 1) {
+        status["Valid_Data"] = true; 
+    }
+    if((res>>2) & 1) {
+        status["Sweep_Complete"] = true;
+    }
+    
+    return(status);
+}
+
+
+        
+    
+
 
 var measure_temperature = function() {
 	var control_byte = upper_byte(MEASURE_TEMP | output_range | pga_gain);
-	wire.writeBytes(R_CONTROL0, [control_byte];
+	wire.writeBytes(R_CONTROL0, [control_byte], error_msg(err));
 }
 
 

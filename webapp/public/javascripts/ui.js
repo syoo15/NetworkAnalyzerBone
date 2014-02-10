@@ -9,7 +9,12 @@ $(document).ready(function() {
     
     var refresh = function() {
         $.get('/refresh', function(data, status) {
-            document.getElementById("statustext").innerHTML = data;
+            if(data == '0') {
+                document.getElementById("statustext").innerHTML = "No device found";
+            }
+            else {
+                document.getElementById("statustext").innerHTML = "Device address " + data;
+            }
             refreshDate();
         });
     };
