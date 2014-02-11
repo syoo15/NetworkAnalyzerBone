@@ -41,6 +41,10 @@ var R_REAL1 =           0x95;
 var R_IMAG0 =           0x96;
 var R_IMAG1 =           0x97;
 
+// Command codes
+var BLOCK_WRITE_CMD =       0xA0;
+var BLOCK_READ_CMD =        0xA1;
+var ADDRESS_POINTER_CMD =   0xB0
 // Control Register 
 // See Table 9
 var INIT_WITH_START_FREQ =  0x1000; 
@@ -105,15 +109,13 @@ var error_msg = function(err) {
 }
 
 var point_to_address = function(address) {
-	// pointer command = 0xB0 
-	// point to address
-	wire.writeBytes(0xB0, [address], 
+	wire.writeBytes(ADDRESS_POINTER_CMD, [address], 
 		error_msg(err));
 }
 
 var set_device_standby = function() {
 	// Only R_CONTROL0 will be overwritten. 
-	var control_byte = 0xB0 | output_range | pga_gain;
+	var control_byte = ADDRESS_POINTER_CMD | output_range | pga_gain;
 	wire.writeBytes(R_CONTROL0, [control_byte],
 		error_msg(err));
 }
@@ -175,7 +177,7 @@ var get_status = function() {
     if(res & 1) {
         status["Valid_Temp"] = true;
     }
-    if((res>>1) & 1) {
+    if((res>>1) & 1) { 
         status["Valid_Data"] = true; 
     }
     if((res>>2) & 1) {
@@ -185,10 +187,17 @@ var get_status = function() {
     return(status);
 }
 
-
-        
-    
-
+var get_temperature_reading = function() {
+    var status = get_status();
+    if(status["Valid_Temp"]) {
+        point_to_address(R_TEMP0);
+        wire.readBytes(BLOCK_READ_CMD, 2, function(err, res) {
+            var temp_code = (res[0] <<8) | res[1]);
+            if ((temp_code >> 13) &1) {
+                // negative temperature
+                var temp = (temp_code = 16384)/32;
+        };
+}
 
 var measure_temperature = function() {
 	var control_byte = upper_byte(MEASURE_TEMP | output_range | pga_gain);
