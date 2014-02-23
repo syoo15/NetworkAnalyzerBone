@@ -201,7 +201,7 @@ function twos_comp_to_dec(number) {
 	var value;
 	if(number > 32767) {
 		// number is negative
-		value = (~number + 1)*(-1);
+		value = ((~number & 0xffff) + 1)*(-1); // twos complement
 	}
 	else {
 		value = number;

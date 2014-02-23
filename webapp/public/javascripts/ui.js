@@ -148,8 +148,7 @@ $(document).ready(function() {
             
             //console.log(chartData);  
             chart.validateData();  
-            chart.validateNow();
-    
+            chart.validateNow();    
             });
         });
     });
@@ -162,9 +161,22 @@ $(document).ready(function() {
     });
     $("#ButtonDownload").click(function() {
         var filename = $("#FormFilename").val();
-        $.get('/download/' + filename , function(data, status) {
-            alert(data);
-        });
+        var chartdatacsv = "Frequency, Magnitude, Phase\n";
+        for(var i in chartData) {
+        	var obj = chartData[i];
+        	var string = obj.f +","+ obj.z +","+ obj.phi +"\n";
+        	chartdatacsv += string;
+        }
+        
+       	var a = document.createElement('a');
+   		var blob = new Blob([chartdatacsv], {'type':'text/csv'});
+   		a.href = window.URL.createObjectURL(blob);
+   		a.download = filename;
+   		a.click();
+		
+        //var uri = encodeURI(chartdatacsv);
+        //window.open(uri);
+        
     });
     $("#ButtonOpen").click(function() {
         $.get('/open/', function(data, status) {
