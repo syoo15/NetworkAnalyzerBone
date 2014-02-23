@@ -238,7 +238,6 @@ function arg_cplx(complex, calib) {
         arctan += Math.PI;
     }
     if(complex.real < 0 && complex.imag > 0) {
-        arctan += 2*Math.PI;
     }
     
     if(!calib) {
