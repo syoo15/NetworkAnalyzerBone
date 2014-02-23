@@ -2,9 +2,9 @@
  * 10k 1% resistor
  */
 
-var filename = "/home/debian/NetworkAnalyzer/webapp/controller/Gainfactor-10k.txt";
+var filename = "/home/debian/NetworkAnalyzer/webapp/controller/SmoothCal.txt";
 
-console.log(__dirname);
+//console.log(__dirname);
 var fs = require('fs');
 var textarray = fs.readFileSync(filename).toString().split("\n");
 
@@ -14,7 +14,7 @@ var sysp = []
 
 for(i in textarray) {
     var line = textarray[i].split(",");
-    freqs.push(parseInt(line[0]));
+    freqs.push(parseFloat(line[0]));
     gfs.push(parseFloat(line[1]));
     sysp.push(parseFloat(line[2]));
 }
@@ -35,6 +35,6 @@ exports.get_GainFactor = get_GainFactor;
 
 exports.test_gain_factor = function() {
     for(var i=0; i<10; i++) {
-        console.log("testing " + i*10000 +":"+ get_GainFactor(i*10000));
+        console.log("testing " + i*100 +":"+ get_GainFactor(i*100));
     }
 }
