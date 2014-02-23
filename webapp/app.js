@@ -7,7 +7,7 @@ var express = require('express');
 var routes = require('./routes');
 var http = require('http');
 var path = require('path');
-var i2cbase = require('./controller/i2cbase.js');
+//var i2cbase = require('./controller/i2cbase.js');
 //console.log(i2cbase);
 
 var app = express();
