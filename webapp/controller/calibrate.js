@@ -3,11 +3,11 @@ var i2c = require('./i2cbase');
 var fs = require('fs');
 
 var startf = 100; 
-var incr = 195; 
+var incr = 10; 
 var zcal = 100000;
 var steps = 510;
 
-var file = fs.createWriteStream('./calibrate100_195.txt');
+var file = fs.createWriteStream('./cal100_10_1k_2k.txt');
 
 var myparams = {start:startf, increment:incr, steps:steps}
 

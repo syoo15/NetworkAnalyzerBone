@@ -139,7 +139,8 @@ $(document).ready(function() {
             //console.log(response);
             // function to create the chart data
             chartData.length=0;
-			for(var i=0; i<response.SweepParameters.steps; i++) {
+			for(var i=1; i<response.SweepParameters.steps; i++) {
+			// setting i=1 to drop the first data point. 
 				var obj = {"f":response.Frequency[i], 
 						   "z":response.ImpedanceMod[i], 
 						   "phi":response.ImpedanceArg[i]}
