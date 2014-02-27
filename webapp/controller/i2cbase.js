@@ -80,8 +80,8 @@ var test_frequency;
 var frequency_increment;
 
 var i2c = require('i2c');
-var b = require('bonescript'); 
-b.analogWrite('P8_13', 0.5, 100000, function(x) {console.log(x);});
+//var b = require('bonescript'); 
+//b.analogWrite('P8_13', 0.5, 100000, function(x) {console.log(x);});
 
 function clock_rate(source) {
     var clock_rate = 16.78E6;
