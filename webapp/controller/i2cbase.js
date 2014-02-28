@@ -117,12 +117,17 @@ function point_to_address(address) {
 }
 
 function write_data_bytes(register, data) {
-    // This is the ugly hack. We need to send the command byte in two places
-    // for the write operation to work properly
-    // uses a blockright hack. 
+    // we use the block write command and use the length of the data array as
+    // the first byte in sequence. 
+    // the data is only a single number we use a simpler writebyte command. 
     point_to_address(register); 
-    var senddata = [BLOCK_WRITE_CMD].concat(data); // here she is...
-    wire.writeBytes(BLOCK_WRITE_CMD, senddata, error_msg);   
+    if(data.length == 1) {
+        wire.writeBytes(register, data, error_msg); 
+    }
+    else {
+        var senddata = [data.length].concat(data); 
+        wire.writeBytes(BLOCK_WRITE_CMD, senddata, error_msg);  
+    }
 }
 
 
@@ -161,6 +166,7 @@ function increment_frequency_step() {
 	//console.log("Increment sweep");
 	var control_byte = INCREMENT_FREQ | output_range | pga_gain;
 	write_data_bytes(R_CONTROL0, [control_byte]);
+	//console.log(control_byte);
 	test_frequency += frequency_increment;
 }
 
@@ -267,9 +273,9 @@ function sleep(time, callback) {
 function measure_temperature() {
 	//console.log("measuring temp");
 	var temperature;
-	var control_byte = MEASURE_TEMP;
-	point_to_address(R_CONTROL0); 
-	wire.writeByte(control_byte, function(err) {"Error in pointer: " + err});
+	var control_byte = MEASURE_TEMP | output_range | pga_gain;
+	write_data_bytes(R_CONTROL0, [control_byte]);
+	//i2cdump("temp"); 
 	// This should set off temperature measurement
 	sleep(10, function() {});
 	if(read_status()["Valid_Temp"]) {
@@ -320,7 +326,7 @@ exports.deviceParameters = function() {
 	point_to_address(R_CONTROL0);
 	wire.readBytes(BLOCK_READ_CMD, 12, function(err, res) {
 		if (err == null) {
-			//console.log(res);
+			console.log(res);
 			parameters["Control"] = (res[0] << 8) | res[1];
 			parameters["StartFrequency"] = get_frequency(
 							(res[2] << 16) | (res[3] << 8) | res[4], clock_rate());
@@ -350,28 +356,26 @@ function programSweep(sweepParameters) {
 	var start = get_frequency_code(parseInt(sweepParameters.start), clock_rate());
 	var incr = get_frequency_code(parseInt(sweepParameters.increment), clock_rate()); 
 	
-	//console.log(sweepParameters.start);
+	//console.log(sweepParameters);
 	test_frequency = parseInt(sweepParameters.start);
 	//console.log(sweepParameters.increment);
 	frequency_increment = parseInt(sweepParameters.increment);
 	//console.log(sweepParameters.steps);
 	
-	data[0] = BLOCK_WRITE_CMD;
-	data[1] = (start >> 16) & 0xFF;
-	data[2] = (start >> 8) & 0xFF;
-	data[3] = start & 0xFF;
-	data[4] = (incr >> 16) & 0xFF;
-	data[5] = (incr >> 8) & 0xFF;
-	data[6] = incr & 0xFF;
-	data[7] = (parseInt(sweepParameters.steps) >> 8) & 0xFF;
-	data[8] = parseInt(sweepParameters.steps) & 0xFF;
-	data[9] = 0; 
-	data[10] = 10; // 10 settling cycles - may change in a future version
+	data[0] = (start >> 16) & 0xFF;
+	data[1] = (start >> 8) & 0xFF;
+	data[2] = start & 0xFF;
+	data[3] = (incr >> 16) & 0xFF;
+	data[4] = (incr >> 8) & 0xFF;
+	data[5] = incr & 0xFF;
+	data[6] = (parseInt(sweepParameters.steps) >> 8) & 0xFF;
+	data[7] = parseInt(sweepParameters.steps) & 0xFF;
+	data[8] = 0; 
+	data[9] = 10; // 10 settling cycles - may change in a future version
 	
 	//console.log(data);
 	
-	point_to_address(R_STARTF0); 
-	wire.writeBytes(BLOCK_WRITE_CMD, data, error_msg);
+	write_data_bytes(R_STARTF0, data); 
 }
 
 
@@ -388,9 +392,19 @@ function poll_for_valid_data() {
 	return (valid);
 }
 
+function i2cdump(str) {
+    point_to_address(R_CONTROL0); 
+    wire.readBytes(BLOCK_READ_CMD, 25, function(err, dat) {
+        console.log(str);
+        console.log(dat);
+        }); 
+    }
+    
 function runSweep(sweepParameters, calib) {
 	// we pipe a calib parameter to the magnitude / phase calculation functions
 	var result = {}; 
+	reset_device();
+	//i2cdump("reset"); 
 	
 	if(sweepParameters.range == "H") {
 	    clock_source = INTERNAL_CLK;
@@ -401,18 +415,22 @@ function runSweep(sweepParameters, calib) {
 	    
 	result["SweepParameters"] = sweepParameters;
 	result["TimeStarted"] = new Date().toString();
-	result["Temperature"] = measure_temperature();
 	result["ImpedanceMod"] = [];
 	result["ImpedanceArg"] = [];
 	result["Frequency"] = [];
 	
 	programSweep(sweepParameters);
+	//i2cdump("sweep"); 
+	
 	set_clock_source(clock_source);
 	set_device_standby();
+	//i2cdump("stdby"); 
 
 	program_init();
+	//i2cdump("init");
+	
 	sleep(30, start_sweep);
-
+    //i2cdump("Start");
 	var counter = 0;
 	
 	var SweepComplete = false;
@@ -424,12 +442,12 @@ function runSweep(sweepParameters, calib) {
 			status = read_status();			
 		}
 		SweepComplete = status["Sweep_Complete"];
-		////console.log(status);	
+		//console.log(status);	
 		if(status["Valid_Data"]) {
 			point_to_address(R_REAL0);
 			wire.readBytes(BLOCK_READ_CMD, 4, function(err,res) {
 				if(err == null) {
-					console.log("Step: " + counter);
+					//console.log("Step: " + counter);
 					var complex = {};
 					complex.real = twos_comp_to_dec((res[0]<<8)|res[1]);
 					complex.imag = twos_comp_to_dec((res[2]<<8)|res[3]);
@@ -448,6 +466,7 @@ function runSweep(sweepParameters, calib) {
 		increment_frequency_step();
 	}
 	
+	result["Temperature"] = measure_temperature();
 	power_down_device();			
 	//console.log("Done!");
 	return(result);

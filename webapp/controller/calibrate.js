@@ -18,9 +18,9 @@ for(var j=0; j<myparams.steps; j++) {
 
 file.end();
 
-var file = fs.createWriteStream('./cal_100_503_high.txt');
+var file = fs.createWriteStream('./cal_1k_503_high.txt');
 
-var myparams = {start:1000, increment:100, steps:295, range:"H"};
+var myparams = {start:1000, increment:190, steps:510, range:"H"};
 
 var result = i2c.getGainFactor(myparams, true);
 
