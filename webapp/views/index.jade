@@ -1,56 +1,36 @@
 extends layout
 
 block bodycontainer
-  .starter-template
-    h1 Network impedance analyzer
-    p.lead A part of the openBioinstrumentation suite
   h3 Current status:
   span#statustext 
   p Last Refreshed:&nbsp;
         span#date
         
   div
-    button.btn.btn-default(type='button', id="ButtonSweepLow" data-loading-text="Running")
+    button.btn.btn-default(type='button', id="ButtonSweepBoth" data-loading-text="Running")
       i.glyphicon.glyphicon-transfer
-        | &nbsp;Sweep Low
-        
-    button.btn.btn-default(type='button', id="ButtonSweepHigh" data-loading-text="Running")
-      i.glyphicon.glyphicon-transfer
-        | &nbsp;Sweep High
+        | &nbsp;SweepNSave
     p
    
   div       
     .progress
       .progress-bar(role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;")
-  
-  h3 File Name
+      
   .row
     .col-md-12
       .input-group
-        span.input-group-addon File
+        span.input-group-addon Animal Number
         input.form-control(type='text', placeholder='untitled', id='SaveFileName')
         span.input-group-addon .json
       
   h3 Impedance Plots
-  div
-    button.btn.btn-default(type='button', id="ButtonSave")
-      i.glyphicon.glyphicon-save
-        | &nbsp;Save
-    button.btn.btn-default(type='button', id="ButtonDownload")
-      i.glyphicon.glyphicon-cloud-download
-        | &nbsp;Download
-    button.btn.btn-default(type='button', id="ButtonOpen")
-      i.glyphicon.glyphicon-open
-        | &nbsp;Open
-    button.btn.btn-default(type='button', id="ButtonAnalyze")
-      i.glyphicon.glyphicon-cog
-        | &nbsp;Analyze
             
-  #gaindiv(style='width: 640px; height: 400px;')
+  #gaindiv(style='width: 400px; height: 350px;')
         
   h3 Preferences
   a#preferences
-  p Calibration tables are valid for the following ranges. Noisy data outside these ranges. 
+  p Calibration tables are valid for the following ranges. Noisy data outside these ranges. Do not alter.
+  
   
   h4 Frequency sweep parameters (50-3950 Hz)
   

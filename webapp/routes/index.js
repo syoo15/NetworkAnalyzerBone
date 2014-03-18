@@ -41,9 +41,9 @@ exports.sweep = function(req, res) {
  */
  
 exports.save = function(req, res) {
-	console.log(JSON.stringify(req.body));
+	//console.log(JSON.stringify(req.body));
 	var filename = datapath + req.body.Name.toString() + '.json';
-	console.log(filename);
+	//console.log(filename);
 	var resp = {"save" : false};
 	fs.exists(filename, function(exists) {
 		if(exists) {
