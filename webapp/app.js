@@ -38,6 +38,7 @@ app.get('/refresh', routes.refresh);
 // POST calls - may change data / parameters on server
 app.post('/sweep/', routes.sweep);
 
+app.post('/save/', routes.save);
 
 
 

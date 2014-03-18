@@ -126,7 +126,24 @@ $(document).ready(function() {
 
     
     $("#ButtonSave").click(function() {
-        alert("Trying to save");
+    	var filename = $("#SaveFileName").val();
+    	if (filename == undefined | filename == "") {
+    		alert("No file name chosen");
+    	}
+        else {
+        	alert("Trying to save file: " + filename);
+        	var dat = {};
+        	dat["chartdata"] = chartData;
+        	dat["Name"] = filename;
+        	//console.log(dat);
+        	
+        	$.post('/save/', dat, 
+        		function(response, status) {
+        			//console.log(response);
+        			if(response.save) { alert("File saved successfully"); }
+        			if(response.error != undefined) { alert(response.error); }
+        		});
+    	}
     });
     
     $("#ButtonRefresh").click(refresh);
@@ -192,13 +209,6 @@ $(document).ready(function() {
             btn.button('reset');
             $(".progress-bar").attr("style", "width: 0%;");
             });
-    });
-    
-    $("#ButtonSave").click(function() {
-        var filename = $("#FormFilename").val();
-        $.get('/save/' + filename , function(data, status) {
-            alert(data);
-        });
     });
     
     $("#ButtonDownload").click(function() {
