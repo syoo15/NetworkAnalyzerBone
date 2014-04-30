@@ -1,0 +1,101 @@
+\documentclass{article}
+\usepackage{fullpage}
+
+
+\title{Impedance analyzer-based cell counter}
+\begin{document}
+\maketitle
+
+\section{Initialization, data input and preliminary processing}
+
+<<init, echo=FALSE, message=FALSE>>=
+library(jsonlite)
+library(plyr)
+library(ggplot2)
+library(reshape)
+library(MASS)
+library(signal)
+
+#opts_chunk$set(echo=FALSE, message=FALSE, fig.width=4, fig.height=4)
+
+spec_data <- read.csv('ec_growth_spec.csv', colClasses = c('factor', 'numeric', 'numeric', 'numeric'))
+z_files <- dir('data/', pattern = '.json')
+zdata <- lapply(z_files, function(f) fromJSON(paste0('data/', f)))
+zdata <- lapply(zdata, function(f) {
+  tmp <- unlist(strsplit(f$Name, '_'))
+  f$Time <- as.POSIXct(as.POSIXct(sub("T", " ", tmp[3]), tz="UTC"), tz="CDT")
+  f$Well <- tmp[2]
+  f
+})
+
+growth <- Filter(function(f) {substr(f$Well, 1,6) == 'devrep'}, zdata)
+
+## Correct for phase angle jitter
+phase_correct <- Vectorize(function(phase) {
+  if(phase > pi) phase <- 2*pi - phase
+  if(phase < -pi) phase <- 2*pi + phase
+  phase
+})
+
+
+growth <- lapply(growth, function(f) {
+  f$Well <- toupper(substr(f$Well, 7, nchar(f$Well)))
+  f$chartdata$f <- as.numeric(f$chartdata$f)
+  f$chartdata$z <- as.numeric(f$chartdata$z)
+  f$chartdata$phi <- as.numeric(f$chartdata$phi)
+  
+  ## remove the glitch at 4000 Hz
+  lower <- subset(f$chartdata, f < 4000)
+  upper <- subset(f$chartdata, f >= 4000)
+  upper$z <- upper$z + (min(lower$z) - max(upper$z))
+  f$chartdata <- rbind(lower, upper)
+  
+  ## correct phase angle jitter
+  f$chartdata$phi <- phase_correct(f$chartdata$phi)
+  
+  f
+})
+
+growth <- lapply(growth, function(f) {
+  f$Coefficients <- with(f$chartdata, coef(lm(log(as.numeric(z)) ~ log(as.numeric(f)))))
+  f
+})
+
+growth_meta <- ldply(growth, function(f) {
+  c(f$Well, f$Coefficients[1], f$Coefficients[2])
+})
+names(growth_meta) <- c('Well', 'Intercept', 'Slope')
+
+@
+
+<<fit_rcl>>=
+rcmodel <- function(r,A,eta,f) {
+  warburgish <- A / (2*pi*f)^eta * (1 - 1i)
+  Mod(r + warburgish)
+}
+
+growth <- lapply(growth, function(f) {
+  f$NLSCoefficients <- with(f$chartdata, 
+                         coef(nls(z~rcmodel(r,A,eta,f), 
+                                  start=list(r=min(z), A=max(z), eta=0.5))))
+  f
+})
+
+growth_meta$Intercept <- as.numeric(growth_meta$Intercept)
+growth_meta$Slope <- as.numeric(growth_meta$Slope)
+growth_meta$Resistance <- as.numeric(
+        unlist(lapply(growth, function(f) f$NLSCoefficients[['r']])))
+growth_meta$Warburg <- as.numeric(
+        unlist(lapply(growth, function(f) f$NLSCoefficients[['A']])))
+growth_meta$Exponent <- as.numeric(
+        unlist(lapply(growth, function(f) f$NLSCoefficients[['eta']])))
+
+growth_data <- merge(growth_meta, spec_data, by='Well')
+@
+\section{Results}
+\subsection{Optical density-based quantification}
+<<odplot>>=
+ggplot(subset(growth_data, dilution>0.0002), aes(x=as.factor(dilution), y=Mean)) + geom_point() + scale_y_log10() + geom_smooth(growth_data, group=as.factor(dilution))
+@
+
+\end{document}
