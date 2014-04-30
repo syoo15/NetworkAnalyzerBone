@@ -95,7 +95,8 @@ growth_data <- merge(growth_meta, spec_data, by='Well')
 \section{Results}
 \subsection{Optical density-based quantification}
 <<odplot>>=
-ggplot(subset(growth_data, dilution>0.0002), aes(x=as.factor(dilution), y=Mean)) + geom_point() + scale_y_log10() + geom_smooth(growth_data, group=as.factor(dilution))
+ggplot(subset(growth_data, dilution>0.0002), aes(x=dilution, y=Mean)) + geom_point() + scale_y_log10() + scale_x_log10()
+ggplot(subset(growth_data, dilution>0.0002), aes(x=dilution, y=as.numeric(Resistance))) + geom_point() + scale_x_log10()
 @
 
 \end{document}
