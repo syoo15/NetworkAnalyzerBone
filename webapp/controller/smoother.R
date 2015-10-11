@@ -13,3 +13,6 @@ sp <- with(dat, smooth.spline(V1,V3))
 with(sp, points(x,y, col="red"))
 
 newframe <- data.frame(f = dat$V1, m = sm$y, p= sp$y)
+write.table(newframe, "SmoothCal2.txt", 
+            row.names=F, col.names=F, 
+            sep=",")
