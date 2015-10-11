@@ -393,7 +393,7 @@ function programSweep(sweepParameters) {
 
 
 function poll_for_valid_data() {
-	
+	// waits for valid data and returns the valid status. 
 	var valid = false;
 	while(!valid) {
 		var status = read_status();
@@ -401,7 +401,7 @@ function poll_for_valid_data() {
 		sleep(5, function() {});
 		valid = status["Valid_Data"];
 	}
-	return (valid);
+	return (status);
 }
 
 function i2cdump(str) {
@@ -419,10 +419,9 @@ function getAvgOfReplicates(num) {
   var reps = []; 
   var ValidDate = false; 
   for(var count=0; count<num; count++) {
-    console.log("rep" + count); 
-    if(poll_for_valid_data()) {
-		  status = read_status();			
-		}
+    //console.log("rep" + count); 
+    status = poll_for_valid_data();
+    
 		if(status["Valid_Data"]) {
 			point_to_address(R_REAL0);
 			wire.readBytes(BLOCK_READ_CMD, 4, function(err,res) {
@@ -515,13 +514,11 @@ function runSweep(sweepParameters, calib) {
 	
 	
 	while(!SweepComplete) {
-		if(poll_for_valid_data()) {
-			status = read_status();			
-		}
+		status = poll_for_valid_data();
 		SweepComplete = status["Sweep_Complete"];
 		//console.log(status);	
 		
-		console.log("Step : " + counter); 
+		//console.log("Step : " + counter); 
 		
 		complex = getAvgOfReplicates(3); 
 		

@@ -6,7 +6,7 @@ var zcal = 264.5;
 
 var file = fs.createWriteStream('./cal_100_264_low.txt');
 
-var myparams = {start:50, increment:50, steps:79, range:"L"};
+var myparams = {start:50, increment:50, steps:39, range:"L"};
 
 var result = i2c.getGainFactor(myparams, true);
 
@@ -20,7 +20,7 @@ file.end();
 
 var file = fs.createWriteStream('./cal_1k_264_high.txt');
 
-var myparams = {start:4000, increment:100, steps:460, range:"H"};
+var myparams = {start:2000, increment:100, steps:480, range:"H"};
 
 var result = i2c.getGainFactor(myparams, true);
 

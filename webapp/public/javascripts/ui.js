@@ -144,10 +144,10 @@ $(document).ready(function() {
                 	data.DeviceAddress + " Temperature: " + data.Temperature + "&deg;C");
                 $("#StartFreqL").val(50);
                 $("#IncrFreqL").val(100);
-                $("#NumStepsL").val(40);
-                $("#StartFreqH").val(4000);
+                $("#NumStepsL").val(20);
+                $("#StartFreqH").val(2000);
                 $("#IncrFreqH").val(160);
-                $("#NumStepsH").val(100);
+                $("#NumStepsH").val(150);
             }
             refreshDate();
         });
