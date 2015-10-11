@@ -80,6 +80,13 @@ var test_frequency;
 var frequency_increment;
 
 var i2c = require('i2c');
+var bs = require('bonescript'); 
+bs.analogWrite('P8_13', 0.5, 100000, function(x) {
+  if(x.err) {
+    console.log(x.err); 
+  }
+});
+
 
 function clock_rate(source) {
     var clock_rate = 16.78E6;
@@ -250,10 +257,14 @@ function arg_cplx(complex, calib) {
         arctan += Math.PI;
     }
     if(complex.real < 0 && complex.imag < 0) {
+        // quadrant = 3
         arctan += Math.PI;
     }
-    if(complex.real < 0 && complex.imag > 0) {
+    if(complex.real > 0 && complex.imag < 0) {
+        // quadrant = 4
+        arctan += Math.PI*2;
     }
+    arctan = arctan % (2*Math.PI); // do a modulo - 
     
     if(!calib) {
     	var sysphase = gf.get_GainFactor(test_frequency)[2];

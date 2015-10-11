@@ -2,9 +2,9 @@ var i2c = require('./i2cbase');
 
 var fs = require('fs');
 
-var zcal = 464.1; 
+var zcal = 264.5; 
 
-var file = fs.createWriteStream('./cal_100_503_low4p.txt');
+var file = fs.createWriteStream('./cal_100_264_low.txt');
 
 var myparams = {start:50, increment:50, steps:79, range:"L"};
 
@@ -18,7 +18,7 @@ for(var j=0; j<myparams.steps; j++) {
 
 file.end();
 
-var file = fs.createWriteStream('./cal_1k_503_high4p.txt');
+var file = fs.createWriteStream('./cal_1k_264_high.txt');
 
 var myparams = {start:4000, increment:100, steps:460, range:"H"};
 
