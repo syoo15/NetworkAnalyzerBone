@@ -411,7 +411,51 @@ function i2cdump(str) {
         console.log(dat);
         }); 
     }
-    
+
+
+function getAvgOfReplicates(num) {
+  // function will issue the repeat_frequency command
+  // until num readings are obtained. 
+  var reps = []; 
+  var ValidDate = false; 
+  for(var count=0; count<num; count++) {
+    console.log("rep" + count); 
+    if(poll_for_valid_data()) {
+		  status = read_status();			
+		}
+		if(status["Valid_Data"]) {
+			point_to_address(R_REAL0);
+			wire.readBytes(BLOCK_READ_CMD, 4, function(err,res) {
+			  if(err==null) {
+			    var complex = {};
+					complex.real = twos_comp_to_dec((res[0]<<8)|res[1]);
+					complex.imag = twos_comp_to_dec((res[2]<<8)|res[3]);
+					reps[count] = complex;
+					repeat_frequency(); 
+			  }
+			  else {
+			    error_msg(err);
+					repeat_frequency();
+				}
+			});
+		}
+	}
+	
+	var avg = {}; 
+	avg.real = 0
+	avg.imag = 0; 
+	
+	for(var i=0; i<reps.length; i++) {
+	  avg.real += reps[i].real;
+	  avg.imag += reps[i].imag;
+	}
+	
+	avg.real = avg.real/reps.length;
+	avg.imag = avg.imag/reps.length; 
+	
+	return(avg);
+}
+
 function runSweep(sweepParameters, calib) {
 	// we pipe a calib parameter to the magnitude / phase calculation functions
 	var baseline = fs.readFileSync("/home/debian/NetworkAnalyzer/webapp/controller/fertile_training.csv", "utf8");
@@ -469,41 +513,32 @@ function runSweep(sweepParameters, calib) {
 	var ValidData = false;
 	var status = read_status();
 	
+	
 	while(!SweepComplete) {
 		if(poll_for_valid_data()) {
 			status = read_status();			
 		}
 		SweepComplete = status["Sweep_Complete"];
 		//console.log(status);	
-		if(status["Valid_Data"]) {
-			point_to_address(R_REAL0);
-			wire.readBytes(BLOCK_READ_CMD, 4, function(err,res) {
-				if(err == null) {
-					//console.log("Step: " + counter);
-					var complex = {};
-					complex.real = twos_comp_to_dec((res[0]<<8)|res[1]);
-					complex.imag = twos_comp_to_dec((res[2]<<8)|res[3]);
-					result["Frequency"].push(test_frequency);
-					result["ImpedanceMod"].push(mod_cplx(complex, calib));
-                    if(baseline_dict[test_frequency.toString()] != undefined) {
-                        result["ImpedanceModAvg"].push(baseline_dict[test_frequency.toString()].zmean);
-                        result["ImpedanceModSd"].push(baseline_dict[test_frequency.toString()].zsd);
-                        result["ImpedanceArgAvg"].push(baseline_dict[test_frequency.toString()].phimean);
-                        result["ImpedanceArgSd"].push(baseline_dict[test_frequency.toString()].phisd);
-                        }
-					result["ImpedanceArg"].push(arg_cplx(complex, calib));
-					}
-				else {
-					error_msg(err);
-					repeat_frequency();
-				}
-			counter++;
-			});
-		}
 		
+		console.log("Step : " + counter); 
+		
+		complex = getAvgOfReplicates(3); 
+		
+		result["Frequency"].push(test_frequency);
+		result["ImpedanceMod"].push(mod_cplx(complex, calib));
+    if(baseline_dict[test_frequency.toString()] != undefined) {
+      result["ImpedanceModAvg"].push(baseline_dict[test_frequency.toString()].zmean);
+      result["ImpedanceModSd"].push(baseline_dict[test_frequency.toString()].zsd);
+      result["ImpedanceArgAvg"].push(baseline_dict[test_frequency.toString()].phimean);
+      result["ImpedanceArgSd"].push(baseline_dict[test_frequency.toString()].phisd);
+      }
+		result["ImpedanceArg"].push(arg_cplx(complex, calib));
+					
+		counter++;
 		increment_frequency_step();
-	}
-	
+		
+	}	
 	result["Temperature"] = measure_temperature();
 	power_down_device();			
 	//console.log("Done!");
