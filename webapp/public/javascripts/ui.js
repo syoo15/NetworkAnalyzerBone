@@ -142,12 +142,15 @@ $(document).ready(function() {
             else {
                 $("#statustext").html("Device address: " + 
                 	data.DeviceAddress + " Temperature: " + data.Temperature + "&deg;C");
-                $("#StartFreqL").val(50);
-                $("#IncrFreqL").val(100);
-                $("#NumStepsL").val(20);
-                $("#StartFreqH").val(2000);
-                $("#IncrFreqH").val(160);
-                $("#NumStepsH").val(150);
+                $("#StartFreqL").val(20);
+                $("#IncrFreqL").val(30);
+                $("#NumStepsL").val(19);
+                $("#StartFreqM").val(620);
+                $("#IncrFreqM").val(100);
+                $("#NumStepsM").val(50);
+                $("#StartFreqH").val(6000);
+                $("#IncrFreqH").val(500);
+                $("#NumStepsH").val(187);
             }
             refreshDate();
         });
@@ -209,7 +212,6 @@ $(document).ready(function() {
             $(".progress-bar").attr("style", "width: 0%;");
             });
     });
-
     
     $("#ButtonSweepHigh").click(function() {
         var btn = $(this); 
@@ -244,6 +246,83 @@ $(document).ready(function() {
     
     $("#ButtonSweepBoth").click(function() {
     
+    	var filename = $("#SaveFileName").val();
+    	if (filename == undefined | filename == "") {
+    		alert("No file name chosen");
+    	}
+        else {
+        	var date = new Date();
+        	filename = filename + "_" + date.toISOString();
+        	var btn = $(this); 
+			btn.button('Running sweep');
+			$(".progress-bar").attr("style", "width: 25%;");
+			var start = $("#StartFreqL").val();
+			var increment = $("#IncrFreqL").val();
+			var numsteps = $("#NumStepsL").val();
+			var data = {"range":"L",
+						"start":parseInt(start), 
+						"increment":parseInt(increment), 
+						"steps":parseInt(numsteps)};
+			$.post('/sweep/', data,
+				function(response, status) {
+				//console.log(response);
+				// function to create the chart data
+				chartData.length=0;
+				for(var i=0; i<response.SweepParameters.steps; i++) { 
+					var obj = {"f":response.Frequency[i], 
+							   "z":response.ImpedanceMod[i], 
+							   "phi":response.ImpedanceArg[i], 
+							   "zmean":response.ImpedanceModAvg[i], 
+							   "zsd":response.ImpedanceModSd[i], 
+							   "phimean":response.ImpedanceArgAvg[i], 
+							   "phisd":response.ImpedanceArgSd[i]}
+					chartData.push(obj);
+				}
+				$(".progress-bar").attr("style", "width: 50%;");
+				start = $("#StartFreqH").val();
+				increment = $("#IncrFreqH").val();
+				numsteps = $("#NumStepsH").val();
+				data = {"range": "H",
+						"start":parseInt(start), 
+						"increment":parseInt(increment), 
+						"steps":parseInt(numsteps)};
+				$.post('/sweep/', data,
+					function(response, status) {
+						$(".progress-bar").attr("style", "width: 66%;");
+						for(var i=0; i<response.SweepParameters.steps; i++) { 
+                            var obj = {"f":response.Frequency[i], 
+                                       "z":response.ImpedanceMod[i], 
+                                       "phi":response.ImpedanceArg[i], 
+                                       "zmean":response.ImpedanceModAvg[i], 
+                                       "zsd":response.ImpedanceModSd[i], 
+                                       "phimean":response.ImpedanceArgAvg[i], 
+                                       "phisd":response.ImpedanceArgSd[i]}
+                                    chartData.push(obj);
+							$(".progress-bar").attr("style", "width: 80%;");
+						}
+						chart.validateData();  
+						chart.validateNow();   
+				 		//alert("Trying to save file: " + filename);
+						var dat = {};
+						dat["chartdata"] = chartData;
+						dat["Name"] = filename;
+						//console.log(dat);
+			
+						$.post('/save/', dat, 
+							function(response, status) {
+								//console.log(response);
+								if(response.save) { alert("File saved successfully"); }
+								if(response.error != undefined) { alert(response.error); }
+								btn.button('reset');
+								$(".progress-bar").attr("style", "width: 0%;");
+						});
+				});
+			});
+    	} 
+    });
+    
+    $("#ButtonSweepAll").click(function() {
+        // TODO - need to refactor this bit. 
     	var filename = $("#SaveFileName").val();
     	if (filename == undefined | filename == "") {
     		alert("No file name chosen");
