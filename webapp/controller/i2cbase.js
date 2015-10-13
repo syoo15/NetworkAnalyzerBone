@@ -73,7 +73,7 @@ var VALID_DFT_DATA =        0x2;
 var SWEEP_COMPLETE =        0x4;
 
 // Global variables
-var output_range = OUTPUT_1VPP;
+var output_range = OUTPUT_200MVPP;
 var pga_gain = PGA_GAIN1X;
 var clock_source = INTERNAL_CLK;
 var test_frequency;
