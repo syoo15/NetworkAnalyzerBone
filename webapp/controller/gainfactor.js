@@ -27,6 +27,7 @@ var get_GainFactor = function(frequency) {
         i++;
         //console.log(i);
     }
+    //console.log('In ' + frequency + ' out ' + freqs[i]); 
     return([freqs[i], gfs[i], sysp[i]]);
 }
 

@@ -321,77 +321,94 @@ $(document).ready(function() {
     	} 
     });
     
-    $("#ButtonSweepAll").click(function() {
-        // TODO - need to refactor this bit. 
-    	var filename = $("#SaveFileName").val();
-    	if (filename == undefined | filename == "") {
+    var check_filename = function() {
+      var filename = $("#SaveFileName").val();
+      if (filename == undefined | filename == "") {
     		alert("No file name chosen");
     	}
-        else {
-        	var date = new Date();
-        	filename = filename + "_" + date.toISOString();
-        	var btn = $(this); 
-			btn.button('Running sweep');
-			$(".progress-bar").attr("style", "width: 25%;");
-			var start = $("#StartFreqL").val();
-			var increment = $("#IncrFreqL").val();
-			var numsteps = $("#NumStepsL").val();
-			var data = {"range":"L",
-						"start":parseInt(start), 
-						"increment":parseInt(increment), 
-						"steps":parseInt(numsteps)};
-			$.post('/sweep/', data,
-				function(response, status) {
-				//console.log(response);
-				// function to create the chart data
-				chartData.length=0;
-				for(var i=0; i<response.SweepParameters.steps; i++) { 
-					var obj = {"f":response.Frequency[i], 
-							   "z":response.ImpedanceMod[i], 
-							   "phi":response.ImpedanceArg[i], 
-							   "zmean":response.ImpedanceModAvg[i], 
-							   "zsd":response.ImpedanceModSd[i], 
-							   "phimean":response.ImpedanceArgAvg[i], 
-							   "phisd":response.ImpedanceArgSd[i]}
-					chartData.push(obj);
-				}
-				$(".progress-bar").attr("style", "width: 50%;");
-				start = $("#StartFreqH").val();
-				increment = $("#IncrFreqH").val();
-				numsteps = $("#NumStepsH").val();
-				data = {"range": "H",
-						"start":parseInt(start), 
-						"increment":parseInt(increment), 
-						"steps":parseInt(numsteps)};
-				$.post('/sweep/', data,
-					function(response, status) {
-						$(".progress-bar").attr("style", "width: 66%;");
-						for(var i=0; i<response.SweepParameters.steps; i++) { 
-                            var obj = {"f":response.Frequency[i], 
-                                       "z":response.ImpedanceMod[i], 
-                                       "phi":response.ImpedanceArg[i], 
-                                       "zmean":response.ImpedanceModAvg[i], 
-                                       "zsd":response.ImpedanceModSd[i], 
-                                       "phimean":response.ImpedanceArgAvg[i], 
-                                       "phisd":response.ImpedanceArgSd[i]}
-                                    chartData.push(obj);
-							$(".progress-bar").attr("style", "width: 80%;");
-						}
-						chart.validateData();  
-						chart.validateNow();   
-				 		//alert("Trying to save file: " + filename);
-						var dat = {};
-						dat["chartdata"] = chartData;
-						dat["Name"] = filename;
-						//console.log(dat);
-			
-						$.post('/save/', dat, 
-							function(response, status) {
-								//console.log(response);
-								if(response.save) { alert("File saved successfully"); }
-								if(response.error != undefined) { alert(response.error); }
-								btn.button('reset');
-								$(".progress-bar").attr("style", "width: 0%;");
+      else {
+        var date = new Date();
+        filename = filename + "_" + date.toISOString();
+      }
+      return(filename);
+    }
+    
+    var push_data_on_stack = function(response, chartData) {
+      for(var i=0; i<response.SweepParameters.steps; i++) { 
+            var obj = {"f":response.Frequency[i], 
+                   "z":response.ImpedanceMod[i], 
+                   "phi":response.ImpedanceArg[i], 
+                   "zmean":response.ImpedanceModAvg[i], 
+                   "zsd":response.ImpedanceModSd[i], 
+                   "phimean":response.ImpedanceArgAvg[i], 
+                   "phisd":response.ImpedanceArgSd[i]}
+            chartData.push(obj);
+				  }
+			return (chartData); 
+		}
+    
+    $("#ButtonSweepAll").click(function() {
+      // TODO - need to refactor this bit. 
+    	
+    	filename = check_filename(); 
+    	
+    	if(filename === undefined) {
+    	  var btn = $(this); 
+			  btn.button('Running sweep');
+			  $(".progress-bar").attr("style", "width: 20%;");
+			  var start = $("#StartFreqL").val();
+			  var increment = $("#IncrFreqL").val();
+			  var numsteps = $("#NumStepsL").val();
+			  var data = {"range":"L",
+                    "start":parseInt(start), 
+                    "increment":parseInt(increment), 
+                    "steps":parseInt(numsteps)};
+			  $.post('/sweep/', data,
+				  function(response, status) {
+				  //console.log(response);
+				  // function to create the chart data
+				  chartData.length=0;
+				  chartData = push_data_on_stack(response, chartData);
+          
+				  $(".progress-bar").attr("style", "width: 50%;");
+				  start = $("#StartFreqM").val();
+				  increment = $("#IncrFreqM").val();
+				  numsteps = $("#NumStepsM").val();
+				  data = {"range": "M",
+						  "start":parseInt(start), 
+						  "increment":parseInt(increment), 
+						  "steps":parseInt(numsteps)};
+				  $.post('/sweep/', data,
+					  function(response, status) {
+						  $(".progress-bar").attr("style", "width: 66%;");
+						  chartData = push_data_on_stack(response, chartData);
+						  start = $("#StartFreqH").val();
+				      increment = $("#IncrFreqH").val();
+				      numsteps = $("#NumStepsH").val();
+				      data = {"range": "H",
+                      "start":parseInt(start), 
+                      "increment":parseInt(increment), 
+                      "steps":parseInt(numsteps)};
+							$.post('/sweep/', data,
+					      function(response, status) {
+					      $(".progress-bar").attr("style", "width: 80%;");
+					      chartData = push_data_on_stack(response, chartData); 
+					      chart.validateData();  
+						    chart.validateNow();   
+					      //alert("Trying to save file: " + filename);
+						    var dat = {};
+						    dat["chartdata"] = chartData;
+						    dat["Name"] = filename;
+						    //console.log(dat);
+						    $(".progress-bar").attr("style", "width: 100%;");
+						    $.post('/save/', dat, 
+						      function(response, status) {
+                    //console.log(response);
+                    if(response.save) { alert("File saved successfully"); }
+                    if(response.error != undefined) { alert(response.error); }
+                    btn.button('reset');
+								    $(".progress-bar").attr("style", "width: 0%;");
+					      });
 						});
 				});
 			});

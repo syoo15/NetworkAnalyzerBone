@@ -78,24 +78,29 @@ var pga_gain = PGA_GAIN1X;
 var clock_source = INTERNAL_CLK;
 var test_frequency;
 var frequency_increment;
+var clock_rate = 16.78E6; // default on startup
 
 var i2c = require('i2c');
 var bs = require('bonescript'); 
-bs.analogWrite('P8_13', 0.5, 100000, function(x) {
-  if(x.err) {
-    console.log(x.err); 
-  }
-});
 
-
-function clock_rate(source) {
-    var clock_rate = 16.78E6;
-    if(clock_source == EXTERNAL_CLK) {
-        clock_rate = 100E3;
+function set_device_pwm(freq) {
+  //console.log("Setting freq: " + freq); 
+  bs.analogWrite('P8_13', 0, 2000, function(x) {
+    if(x.err) {
+      console.log(x.err); 
     }
-    return(clock_rate);
-}
+  });
 
+  duty = 0.5; 
+  period = Math.round(1E9 / freq); 
+  if(freq != 0) {
+    bs.analogWrite('P8_13', duty, freq, function(x) {
+    if(x.err) {
+      console.log(x.err); 
+      }
+    });
+  }
+}
 
 var wire = new i2c(DEVICE_ADDRESS); 
 // associates with first i2c bus by default
@@ -146,8 +151,22 @@ function set_device_standby() {
 	write_data_bytes(R_CONTROL0, [control_byte]); 
 }
 
+function clock_is_internal() {
+  point_to_address(R_CONTROL1);
+  wire.readByte(function(err, res) {
+    if(err == null) {
+      return (res);
+      // will return true if external clock
+    }
+    else {
+      console.log("err" + err);
+      return (undefined); 
+    }
+  });
+}
+
 function set_clock_source(src) {
-    //console.log("Setting clock source");
+  //console.log("Setting clock source:" + src);
 	var control_byte = src;
 	write_data_bytes(R_CONTROL1, [control_byte]); 
 }
@@ -327,7 +346,7 @@ function measure_temperature() {
  * a JSON object
  */
 
-exports.deviceParameters = function() {
+deviceParameters = function() {
 	
 	set_clock_source(INTERNAL_CLK);
 	
@@ -338,12 +357,13 @@ exports.deviceParameters = function() {
 	point_to_address(R_CONTROL0);
 	wire.readBytes(BLOCK_READ_CMD, 12, function(err, res) {
 		if (err == null) {
-			console.log(res);
+			//console.log(res);
 			parameters["Control"] = (res[0] << 8) | res[1];
+			parameters["Clock"] = res[1] >> 3 & 1;
 			parameters["StartFrequency"] = get_frequency(
-							(res[2] << 16) | (res[3] << 8) | res[4], clock_rate());
+							(res[2] << 16) | (res[3] << 8) | res[4], clock_rate);
 			parameters["Increment"] = get_frequency(
-							(res[5] << 16) | (res[6] << 8) | res[7], clock_rate());
+							(res[5] << 16) | (res[6] << 8) | res[7], clock_rate);
 			parameters["NumIncrements"] = 
 							((res[8]&1) << 8) | res[9];
 			parameters["SettlingCyclesMult"] = (res[10]>>1)&3;
@@ -359,14 +379,18 @@ exports.deviceParameters = function() {
 		}
 	});
 	
+	set_clock_source(clock_source); 
 	return(parameters);	
 }
+
+exports.deviceParameters = deviceParameters;
 
 function programSweep(sweepParameters) {
 	reset_device();
 	var data = [];
-	var start = get_frequency_code(parseInt(sweepParameters.start), clock_rate());
-	var incr = get_frequency_code(parseInt(sweepParameters.increment), clock_rate()); 
+	//console.log("Clock: " + clock_rate);
+	var start = get_frequency_code(parseInt(sweepParameters.start), clock_rate);
+	var incr = get_frequency_code(parseInt(sweepParameters.increment), clock_rate); 
 	
 	//console.log(sweepParameters);
 	test_frequency = parseInt(sweepParameters.start);
@@ -385,7 +409,7 @@ function programSweep(sweepParameters) {
 	data[8] = 0; 
 	data[9] = 10; // 10 settling cycles - may change in a future version
 	
-	//console.log(data);
+	//console.log("Prog: " + data);
 	
 	write_data_bytes(R_STARTF0, data); 
 }
@@ -460,28 +484,38 @@ function runSweep(sweepParameters, calib) {
 	var baseline = fs.readFileSync("/home/debian/NetworkAnalyzer/webapp/controller/fertile_training.csv", "utf8");
 	baseline = baseline.split("\n");
 	//console.log(baseline.length);
-
-    baseline_dict = {};
-    
-    for(var i=1; i<baseline.length-1; i++) {
-        record = baseline[i].split(','); 
-        baseline_dict[record[0]] = {"zmean" : record[1], 
-                                    "zsd" : record[2], 
-                                    "phimean" : record[3], 
-                                    "phisd" :record[4],
-                                    }
-        }
-    //console.log(baseline_dict); 
+  baseline_dict = {};
+  for(var i=1; i<baseline.length-1; i++) {
+      record = baseline[i].split(','); 
+      baseline_dict[record[0]] = {"zmean" : record[1], 
+                                  "zsd" : record[2], 
+                                  "phimean" : record[3], 
+                                  "phisd" :record[4],
+                                  }
+      }
+  //console.log(baseline_dict); 
     
 	var result = {}; 
 	reset_device();
 	//i2cdump("reset"); 
 	
 	if(sweepParameters.range == "H") {
+	    set_device_pwm(0); 
+	    set_clock_source(INTERNAL_CLK); 
+	    clock_rate = 16.78E6; 
 	    clock_source = INTERNAL_CLK;
-	}
-	else {
+	    }
+	if(sweepParameters.range == "M") {
+	    clock_rate = 1E6; 
+	    set_device_pwm(clock_rate); 
 	    clock_source = EXTERNAL_CLK;
+	    set_clock_source(EXTERNAL_CLK); 
+	}
+	if(sweepParameters.range == "L") {
+	    clock_rate = 100E3; 
+	    set_device_pwm(clock_rate); 
+	    clock_source = EXTERNAL_CLK;
+	    set_clock_source(EXTERNAL_CLK); 
 	}
 	    
 	result["SweepParameters"] = sweepParameters;
@@ -496,8 +530,13 @@ function runSweep(sweepParameters, calib) {
 	
 	programSweep(sweepParameters);
 	//i2cdump("sweep"); 
+
 	
-	set_clock_source(clock_source);
+	//console.log("Var " + clock_source + "Internal?:" + clock_is_internal()); 
+	//console.log(clock_rate); 
+	
+	console.log(deviceParameters());
+	
 	set_device_standby();
 	//i2cdump("stdby"); 
 
@@ -537,7 +576,8 @@ function runSweep(sweepParameters, calib) {
 		
 	}	
 	result["Temperature"] = measure_temperature();
-	power_down_device();			
+	power_down_device();		
+	set_device_pwm(0); 	
 	//console.log("Done!");
 	return(result);
 }
@@ -549,7 +589,7 @@ exports.powerdown = power_down_device;
 exports.reset = reset_device;
  
 exports.getGainFactor = function(sweepparams) {
-	console.log(sweepparams);
+	//console.log(sweepparams);
 	var results = runSweep(sweepparams, calibrate=true);
 	return(results);
 }
