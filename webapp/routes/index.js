@@ -30,7 +30,7 @@ exports.refresh = function(req, res) {
  */
 
 exports.sweep = function(req, res) {
-  //console.log(JSON.stringify(req.body));
+  console.log(JSON.stringify(req.body));
   var sweepStats = i2cbase.runSweep(req.body, false);
   //console.log(sweepStats);
   res.json(sweepStats);

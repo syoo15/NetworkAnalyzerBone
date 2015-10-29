@@ -11,17 +11,23 @@ $(document).ready(function() {
 		{
 			"f": 50,
 			"z": 10000,
-			"phi":4,
+			"zmean": 5000,
+			"phi": 4,
+			"phimean": 2,
 		},
 		{
 			"f": 10000,
 			"z": 90000,
+			"zmean": 40000,
 			"phi":-4,
+			"phimean":-2,
 		},
 		{
 			"f": 20000,
 			"z": 110,
+			"zmean":200,
 			"phi":0,
+			"phimean":-1,
 		}
 	];
     
@@ -74,11 +80,23 @@ $(document).ready(function() {
         graph1.balloonText = "f:[[x]] Z:[[y]]";
         graph1.xField = "f";
         graph1.yField = "z";
-        graph1.lineAlpha = 0.5;
+        graph1.lineAlpha = 0.7;
         graph1.lineThickness = 2;
         graph1.bullet = "round";
         graph1.bulletSize = 4
         chart.addGraph(graph1);
+        
+        var graph11 = new AmCharts.AmGraph();
+        graph11.yAxis = zAxis;
+        graph11.lineColor = "#FF6600";
+        //graph11.balloonText = "f:[[x]] Z:[[y]]";
+        graph11.xField = "f";
+        graph11.yField = "zmean";
+        graph11.lineAlpha = 0.3;
+        graph11.lineThickness = 1;
+        graph11.bullet = "none";
+        //graph11.bulletSize = 3
+        chart.addGraph(graph11);
 
         var graph2 = new AmCharts.AmGraph();
         graph2.yAxis = pAxis;
@@ -86,10 +104,23 @@ $(document).ready(function() {
         graph2.balloonText = "f:[[x]] Phi:[[y]]";
         graph2.xField = "f";
         graph2.yField = "phi";
-        graph2.lineAlpha = 0.5;
+        graph2.lineAlpha = 0.7;
         graph2.lineThickness = 2;
         graph2.bullet = "none";
         chart.addGraph(graph2);
+        
+        var graph21 = new AmCharts.AmGraph();
+        graph21.yAxis = pAxis;
+        graph21.lineColor = "#69A55C";
+        //graph21.balloonText = "f:[[x]] Phi:[[y]]";
+        graph21.xField = "f";
+        graph21.yField = "phimean";
+        graph21.lineAlpha = 0.3;
+        graph21.lineThickness = 1;
+        graph21.bullet = "none";
+        chart.addGraph(graph21);
+        
+        
         // CURSOR
         var chartCursor = new AmCharts.ChartCursor();
         chart.addChartCursor(chartCursor);
@@ -111,12 +142,15 @@ $(document).ready(function() {
             else {
                 $("#statustext").html("Device address: " + 
                 	data.DeviceAddress + " Temperature: " + data.Temperature + "&deg;C");
-                $("#StartFreqL").val(50);
-                $("#IncrFreqL").val(100);
-                $("#NumStepsL").val(40);
-                $("#StartFreqH").val(4000);
-                $("#IncrFreqH").val(160);
-                $("#NumStepsH").val(100);
+                $("#StartFreqL").val(20);
+                $("#IncrFreqL").val(30);
+                $("#NumStepsL").val(19);
+                $("#StartFreqM").val(620);
+                $("#IncrFreqM").val(100);
+                $("#NumStepsM").val(50);
+                $("#StartFreqH").val(6000);
+                $("#IncrFreqH").val(500);
+                $("#NumStepsH").val(187);
             }
             refreshDate();
         });
@@ -178,7 +212,6 @@ $(document).ready(function() {
             $(".progress-bar").attr("style", "width: 0%;");
             });
     });
-
     
     $("#ButtonSweepHigh").click(function() {
         var btn = $(this); 
@@ -238,7 +271,11 @@ $(document).ready(function() {
 				for(var i=0; i<response.SweepParameters.steps; i++) { 
 					var obj = {"f":response.Frequency[i], 
 							   "z":response.ImpedanceMod[i], 
-							   "phi":response.ImpedanceArg[i]}
+							   "phi":response.ImpedanceArg[i], 
+							   "zmean":response.ImpedanceModAvg[i], 
+							   "zsd":response.ImpedanceModSd[i], 
+							   "phimean":response.ImpedanceArgAvg[i], 
+							   "phisd":response.ImpedanceArgSd[i]}
 					chartData.push(obj);
 				}
 				$(".progress-bar").attr("style", "width: 50%;");
@@ -253,10 +290,14 @@ $(document).ready(function() {
 					function(response, status) {
 						$(".progress-bar").attr("style", "width: 66%;");
 						for(var i=0; i<response.SweepParameters.steps; i++) { 
-							var obj = {"f":response.Frequency[i], 
-								   "z":response.ImpedanceMod[i], 
-								   "phi":response.ImpedanceArg[i]}
-							chartData.push(obj);
+                            var obj = {"f":response.Frequency[i], 
+                                       "z":response.ImpedanceMod[i], 
+                                       "phi":response.ImpedanceArg[i], 
+                                       "zmean":response.ImpedanceModAvg[i], 
+                                       "zsd":response.ImpedanceModSd[i], 
+                                       "phimean":response.ImpedanceArgAvg[i], 
+                                       "phisd":response.ImpedanceArgSd[i]}
+                                    chartData.push(obj);
 							$(".progress-bar").attr("style", "width: 80%;");
 						}
 						chart.validateData();  
@@ -274,6 +315,100 @@ $(document).ready(function() {
 								if(response.error != undefined) { alert(response.error); }
 								btn.button('reset');
 								$(".progress-bar").attr("style", "width: 0%;");
+						});
+				});
+			});
+    	} 
+    });
+    
+    var check_filename = function() {
+      var filename = $("#SaveFileName").val();
+      if (filename == undefined | filename == "") {
+    		alert("No file name chosen");
+    	}
+      else {
+        var date = new Date();
+        filename = filename + "_" + date.toISOString();
+      }
+      return(filename);
+    }
+    
+    var push_data_on_stack = function(response, chartData) {
+      for(var i=0; i<response.SweepParameters.steps; i++) { 
+            var obj = {"f":response.Frequency[i], 
+                   "z":response.ImpedanceMod[i], 
+                   "phi":response.ImpedanceArg[i], 
+                   "zmean":response.ImpedanceModAvg[i], 
+                   "zsd":response.ImpedanceModSd[i], 
+                   "phimean":response.ImpedanceArgAvg[i], 
+                   "phisd":response.ImpedanceArgSd[i]}
+            chartData.push(obj);
+				  }
+			return (chartData); 
+		}
+    
+    $("#ButtonSweepAll").click(function() {
+      // TODO - need to refactor this bit. 
+    	
+    	filename = check_filename(); 
+    	
+    	if(filename === undefined) {
+    	  var btn = $(this); 
+			  btn.button('Running sweep');
+			  $(".progress-bar").attr("style", "width: 20%;");
+			  var start = $("#StartFreqL").val();
+			  var increment = $("#IncrFreqL").val();
+			  var numsteps = $("#NumStepsL").val();
+			  var data = {"range":"L",
+                    "start":parseInt(start), 
+                    "increment":parseInt(increment), 
+                    "steps":parseInt(numsteps)};
+			  $.post('/sweep/', data,
+				  function(response, status) {
+				  //console.log(response);
+				  // function to create the chart data
+				  chartData.length=0;
+				  chartData = push_data_on_stack(response, chartData);
+          
+				  $(".progress-bar").attr("style", "width: 50%;");
+				  start = $("#StartFreqM").val();
+				  increment = $("#IncrFreqM").val();
+				  numsteps = $("#NumStepsM").val();
+				  data = {"range": "M",
+						  "start":parseInt(start), 
+						  "increment":parseInt(increment), 
+						  "steps":parseInt(numsteps)};
+				  $.post('/sweep/', data,
+					  function(response, status) {
+						  $(".progress-bar").attr("style", "width: 66%;");
+						  chartData = push_data_on_stack(response, chartData);
+						  start = $("#StartFreqH").val();
+				      increment = $("#IncrFreqH").val();
+				      numsteps = $("#NumStepsH").val();
+				      data = {"range": "H",
+                      "start":parseInt(start), 
+                      "increment":parseInt(increment), 
+                      "steps":parseInt(numsteps)};
+							$.post('/sweep/', data,
+					      function(response, status) {
+					      $(".progress-bar").attr("style", "width: 80%;");
+					      chartData = push_data_on_stack(response, chartData); 
+					      chart.validateData();  
+						    chart.validateNow();   
+					      //alert("Trying to save file: " + filename);
+						    var dat = {};
+						    dat["chartdata"] = chartData;
+						    dat["Name"] = filename;
+						    //console.log(dat);
+						    $(".progress-bar").attr("style", "width: 100%;");
+						    $.post('/save/', dat, 
+						      function(response, status) {
+                    //console.log(response);
+                    if(response.save) { alert("File saved successfully"); }
+                    if(response.error != undefined) { alert(response.error); }
+                    btn.button('reset');
+								    $(".progress-bar").attr("style", "width: 0%;");
+					      });
 						});
 				});
 			});
