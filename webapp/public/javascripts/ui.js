@@ -148,9 +148,9 @@ $(document).ready(function() {
                 $("#StartFreqM").val(620);
                 $("#IncrFreqM").val(100);
                 $("#NumStepsM").val(50);
-                $("#StartFreqH").val(6000);
-                $("#IncrFreqH").val(500);
-                $("#NumStepsH").val(187);
+                $("#StartFreqH").val(1000);
+                $("#IncrFreqH").val(1000);
+                $("#NumStepsH").val(49);
             }
             refreshDate();
         });
@@ -204,7 +204,7 @@ $(document).ready(function() {
 						   "phi":response.ImpedanceArg[i]}
 				chartData.push(obj);
 			}
-            $(".progress-bar").attr("style", "width: 100%;");
+            $(".progress-bar").attr("style", "width: 70%;");
             //console.log(chartData);
             chart.validateData();
             chart.validateNow();
@@ -229,18 +229,26 @@ $(document).ready(function() {
             //console.log(response);
             // function to create the chart data
             chartData.length=0;
-			for(var i=0; i<response.SweepParameters.steps; i++) {
-				var obj = {"f":response.Frequency[i],
-						   "z":response.ImpedanceMod[i],
-						   "phi":response.ImpedanceArg[i]}
-				chartData.push(obj);
-			}
+			chartData = push_data_on_stack(response, chartData);
             $(".progress-bar").attr("style", "width: 100%;");
             //console.log(chartData);
             chart.validateData();
             chart.validateNow();
             btn.button('reset');
             $(".progress-bar").attr("style", "width: 0%;");
+            var dat = {};
+            dat["chartdata"] = chartData;
+            dat["Name"] = filename;
+            //console.log(dat);
+            $(".progress-bar").attr("style", "width: 100%;");
+            $.post('/save/', dat,
+              function(response, status) {
+                    //console.log(response);
+                    if(response.save) { alert("File saved successfully"); }
+                    if(response.error != undefined) { alert(response.error); }
+                    btn.button('reset');
+                                    $(".progress-bar").attr("style", "width: 0%;");
+                });
             });
     });
 
