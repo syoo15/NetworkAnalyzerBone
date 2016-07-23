@@ -11,5 +11,6 @@
     "i2c" : "*",
     "taffydb" : "*",
     "bonescript" : "*"
+	"d3": "*"
   }
 }

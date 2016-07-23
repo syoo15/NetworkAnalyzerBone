@@ -2,9 +2,10 @@
  * Functions serving http requests
  */
  
-var i2cbase = require('../controller/i2cbase');
+//var i2cbase = require('../controller/i2cbase');
 var fs = require('fs');
-var datapath = '/home/debian/ImpedanceData/';
+//var datapath = '/home/debian/ImpedanceData/';
+var datapath = 'C:\Users\Seokchan\NetworkAnalyzerBone\webapp';
 /*
  * GET home page.
  */
