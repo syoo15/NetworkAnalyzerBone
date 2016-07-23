@@ -32,9 +32,6 @@ $(document).ready(function() {
 		}
 	];
 
-
-
-
 	AmCharts.ready(function () {
 		console.log("ready!!!");
         //console.log("Executing amcharts");
@@ -162,7 +159,6 @@ $(document).ready(function() {
     };
 
     refresh();
-
 
     $("#ButtonSave").click(function() {
     	var filename = $("#SaveFileName").val();
