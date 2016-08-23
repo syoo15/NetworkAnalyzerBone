@@ -2,10 +2,11 @@
  * Functions serving http requests
  */
  
-//var i2cbase = require('../controller/i2cbase');
+var i2cbase = require('../controller/i2cbase');
 var fs = require('fs');
-//var datapath = '/home/debian/ImpedanceData/';
-var datapath = 'C:\Users\Seokchan\NetworkAnalyzerBone\webapp';
+var datapath = '/home/debian/ImpedanceData/';
+//var calibrate = require('../controller/calibrate.js');
+
 /*
  * GET home page.
  */
@@ -33,18 +34,20 @@ exports.refresh = function(req, res) {
 exports.sweep = function(req, res) {
   console.log(JSON.stringify(req.body));
   var sweepStats = i2cbase.runSweep(req.body, false);
-  //console.log(sweepStats);
+  console.log(sweepStats);
   res.json(sweepStats);
   };
+
+
 
 /* 
  * POST request for saving a file
  */
  
 exports.save = function(req, res) {
-	//console.log(JSON.stringify(req.body));
+	console.log(JSON.stringify(req.body));
 	var filename = datapath + req.body.Name.toString() + '.json';
-	//console.log(filename);
+	console.log(filename);
 	var resp = {"save" : false};
 	fs.exists(filename, function(exists) {
 		if(exists) {

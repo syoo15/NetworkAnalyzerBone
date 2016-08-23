@@ -52,7 +52,7 @@
 # PATH should only include /usr/* if it runs after the mountnfs.sh script
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin # modify if you need
  
-DAEMON_ARGS="/home/debian/NetworkAnalyzer/webapp/app.js"
+DAEMON_ARGS="/home/debian/NetworkAnalyzerBone/webapp/app.js"
                                             # path to your node.js server/app
                                             # NB: don't use ~/ in path
  

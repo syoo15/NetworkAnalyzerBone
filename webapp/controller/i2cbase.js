@@ -103,6 +103,7 @@ function set_device_pwm(freq) {
 }
 
 var wire = new i2c(DEVICE_ADDRESS); 
+
 // associates with first i2c bus by default
 
 var gf = require('./gainfactor');
@@ -301,6 +302,8 @@ function sleep(time, callback) {
     callback();
 }
 
+
+
 function measure_temperature() {
 	//console.log("measuring temp");
 	var temperature;
@@ -313,7 +316,7 @@ function measure_temperature() {
 		point_to_address(R_TEMP0);
 		wire.readBytes(BLOCK_READ_CMD, 2, function(err, res) {
 			if(err == null) {
-				var temp_code = (res[0] << 8) | res[1];
+				var temp_code = twos_comp_to_dec((res[0] << 8) | res[1]);
 				//console.log("Temp code: " + temp_code);
 				if((temp_code >>13) &1) {
 					var temp = (temp_code - 16384)/32;
@@ -388,15 +391,15 @@ exports.deviceParameters = deviceParameters;
 function programSweep(sweepParameters) {
 	reset_device();
 	var data = [];
-	//console.log("Clock: " + clock_rate);
+	console.log("Clock: " + clock_rate);
 	var start = get_frequency_code(parseInt(sweepParameters.start), clock_rate);
 	var incr = get_frequency_code(parseInt(sweepParameters.increment), clock_rate); 
 	
-	//console.log(sweepParameters);
+	console.log(sweepParameters);
 	test_frequency = parseInt(sweepParameters.start);
-	//console.log(sweepParameters.increment);
+	console.log(sweepParameters.increment);
 	frequency_increment = parseInt(sweepParameters.increment);
-	//console.log(sweepParameters.steps);
+	console.log(sweepParameters.steps);
 	
 	data[0] = (start >> 16) & 0xFF;
 	data[1] = (start >> 8) & 0xFF;
@@ -409,7 +412,7 @@ function programSweep(sweepParameters) {
 	data[8] = 0; 
 	data[9] = 10; // 10 settling cycles - may change in a future version
 	
-	//console.log("Prog: " + data);
+	console.log("Prog: " + data);
 	
 	write_data_bytes(R_STARTF0, data); 
 }
@@ -443,7 +446,7 @@ function getAvgOfReplicates(num) {
   var reps = []; 
   var ValidDate = false; 
   for(var count=0; count<num; count++) {
-    //console.log("rep" + count); 
+    console.log("rep" + count); 
     status = poll_for_valid_data();
     
 		if(status["Valid_Data"]) {
@@ -471,19 +474,24 @@ function getAvgOfReplicates(num) {
 	for(var i=0; i<reps.length; i++) {
 	  avg.real += reps[i].real;
 	  avg.imag += reps[i].imag;
+	  console.log(avg.real)
+	  console.log(avg.imag)
+
 	}
 	
 	avg.real = avg.real/reps.length;
 	avg.imag = avg.imag/reps.length; 
+	console.log(avg.real)
+	console.log(avg.imag)
 	
 	return(avg);
 }
 
 function runSweep(sweepParameters, calib) {
 	// we pipe a calib parameter to the magnitude / phase calculation functions
-	var baseline = fs.readFileSync("/home/debian/NetworkAnalyzer/webapp/controller/fertile_training.csv", "utf8");
+	var baseline = fs.readFileSync("/home/debian/NetworkAnalyzerBone/webapp/controller/fertile_training.csv", "utf8");
 	baseline = baseline.split("\n");
-	//console.log(baseline.length);
+	console.log(baseline.length);
   baseline_dict = {};
   for(var i=1; i<baseline.length-1; i++) {
       record = baseline[i].split(','); 
@@ -557,7 +565,7 @@ function runSweep(sweepParameters, calib) {
 		SweepComplete = status["Sweep_Complete"];
 		//console.log(status);	
 		
-		//console.log("Step : " + counter); 
+		console.log("Step : " + counter); 
 		
 		complex = getAvgOfReplicates(3); 
 		
@@ -578,7 +586,7 @@ function runSweep(sweepParameters, calib) {
 	result["Temperature"] = measure_temperature();
 	power_down_device();		
 	set_device_pwm(0); 	
-	//console.log("Done!");
+	console.log("Done!");
 	return(result);
 }
 
@@ -589,7 +597,7 @@ exports.powerdown = power_down_device;
 exports.reset = reset_device;
  
 exports.getGainFactor = function(sweepparams) {
-	//console.log(sweepparams);
+	console.log(sweepparams);
 	var results = runSweep(sweepparams, calibrate=true);
 	return(results);
 }
