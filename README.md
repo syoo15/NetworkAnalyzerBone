@@ -259,5 +259,9 @@ sudo service nodeup start
 reboot
 ```
 On rebooting of the system, BeagleBone will always run NetworkAnalyzer app on port 3030. <br/>
+
+
+## Important Note
+Static IP: Connect to 192.168.4.2 and web app @ 192.168.4.1:3030
 End of the document. 
 
