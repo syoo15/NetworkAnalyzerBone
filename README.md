@@ -261,7 +261,18 @@ reboot
 On rebooting of the system, BeagleBone will always run NetworkAnalyzer app on port 3030. <br/>
 
 
-## Important Note
+# Trouble Shooting
 Static IP: Connect to 192.168.4.2 and web app @ 192.168.4.1:3030
+<br/> When temperature is not correctly shown in web application:
+```
+i2cdetect -r 1
+or 
+i2cdetect -r 2
+
+then
+i2cdump -y 1 0x0D 
+to probe registers of the AD5933 whether BBB can read or not
+```
+
 End of the document. 
 
