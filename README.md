@@ -274,5 +274,9 @@ i2cdump -y 1 0x0D
 to probe registers of the AD5933 whether BBB can read or not
 ```
 
+# Other References
+[RTL8192CU Driver](http://askubuntu.com/questions/509498/is-there-a-standard-wifi-driver-for-the-edimax-ew-7811un)
+
+
 End of the document. 
 
