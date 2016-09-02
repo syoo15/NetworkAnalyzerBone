@@ -59,7 +59,7 @@ DAEMON_ARGS="/home/debian/NetworkAnalyzerBone/webapp/app.js"
 DESC="node.js http server providing a network analyzer"
                                             # whatever fancy description you like
  
-NODEUSER=debian                             # USER who OWNS the daemon process (no matter whoever runs the init script)
+NODEUSER=root                             # USER who OWNS the daemon process (no matter whoever runs the init script) only root works?
                                             # user:group (if no group is specified, the primary GID for that user is used)
  
 LOCAL_VAR_RUN=/usr/local/var/run            # in case the init script is run by non-root user, you need to
