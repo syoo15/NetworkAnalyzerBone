@@ -150,7 +150,7 @@ $(document).ready(function() {
    var color2 = "lightsalmon";
    var margin = {top:75, right:75, bottom:75, left:75};
    var width = 800 - margin.left - margin.right;
-   var height = 600 - margin.top - margin.bottom;
+   var height = 750 - margin.top - margin.bottom;
    var svg, y, xAxis, yAxis, impedance, phase;
    var navWidth = width;
    var navHeight = 100 -margin.top - margin.bottom;
@@ -240,7 +240,7 @@ $(document).ready(function() {
 
       // Define svg canvas with margin setup
       svg = $el.append("svg:svg")
-        .attr("viewBox", "0 0 800 600")
+        .attr("viewBox", "0 0 800 750")
         .attr("preserveAspectRatio", "xMinYMin meet")
             .append("svg:g")
             .attr("transform", "translate(" + margin.left + ", " + margin.top +")");
@@ -432,7 +432,7 @@ $(document).ready(function() {
 
          verticalLegend = d3.svg.legend().labelFormat("none").cellPadding(5).orientation("vertical").units("Legends").cellWidth(25).cellHeight(18).inputScale(legendColor).cellStepping(10);
 
-         d3.select("svg").append("g").attr("transform", "translate(685,35)").attr("class", "legend").call(verticalLegend);
+         d3.select("svg").append("g").attr("transform", "translate(665,35)").attr("class", "legend").call(verticalLegend);
 
     // Define 'div' for tooltips
          var div = d3.select("body")
