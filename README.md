@@ -230,7 +230,7 @@ sudo service netanalyzer.sh start
 reboot
 ```
 
-### Forever.js auto-boot (Works but crash after 5 min)
+#### *Forever.js auto-boot (Works but crash after 5 min)
 During previous step, forever module was installed in order to configure BeagleBone to run the app automatically.
 Create a file and edit the file as below:
 ```
