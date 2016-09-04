@@ -221,6 +221,16 @@ node /home/debian/NetworkAnalyzerBone/webapp/app.js
 You can access the app via 192.168.7.2:3030 with the device connected via USB or WiFi access point @ 192.168.4.1:3030.
 
 ### 2. Configuring auto-run of the node app on boot
+Configuring automatic run of netanalyzer app can be done by following simple steps below.
+```
+cp /home/debian/NetworkAnalyzerBone/webapp/netanalyzer.sh /etc/init.d/
+chmod 755 /etc/init.d/netanalyzer.sh
+update-rc.d netanalyzer.sh defaults
+sudo service netanalyzer.sh start
+reboot
+```
+
+### Forever.js auto-boot (Works but crash after 5 min)
 During previous step, forever module was installed in order to configure BeagleBone to run the app automatically.
 Create a file and edit the file as below:
 ```
