@@ -551,7 +551,7 @@ function runSweep(sweepParameters, calib) {
 	program_init();
 	//i2cdump("init");
 	
-	sleep(30, start_sweep);
+	sleep(500, start_sweep);
     //i2cdump("Start");
 	var counter = 0;
 	
