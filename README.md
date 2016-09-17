@@ -289,6 +289,7 @@ to probe registers of the AD5933 whether BBB can read or not
 
 # Other References
 [RTL8192CU Driver](http://askubuntu.com/questions/509498/is-there-a-standard-wifi-driver-for-the-edimax-ew-7811un)
+[Installing Kernel](http://beagleboard.org/project/fbtft-drivers-for-linux-38/)
 
 
 End of the document. 
