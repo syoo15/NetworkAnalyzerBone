@@ -79,7 +79,10 @@ Now WiFi is ready to use with BeagleBone, but we will modify setup it up as an A
 By default, RTL8192CU driver is faulty and it needs to be replaced with modified version. [Reference Link](https://github.com/pvaret/rtl8192cu-fixes)
 <br/> Install the drivers and dependencies:
 ```
+sudo apt-get install build-essential dkms
+or
 sudo apt-get install git linux-headers-generic build-essential dkms
+
 sudo apt-get install hostapd isc-dhcp-server
 git clone https://github.com/pvaret/rtl8192cu-fixes.git
 sudo dkms add ./rtl8192cu-fixes
