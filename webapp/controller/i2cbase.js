@@ -1,19 +1,19 @@
 /*
- * I2C library for the AD5933 Impedance Analyzer Board. 
- * Author: Kaustubh D. Bhalerao (bhalerao@illinois.edu)
+ * I2C library for the AD5933 Impedance Analyzer Board.
+ * Author: SeokChan Yoo
  * License: MIT - Open Source
  * Version: 0.0.1 - pre release
- * Part of the OpenBioinstrumentation project. 
+ * Part of the OpenBioinstrumentation project.
  *
  * Dependency: i2c module - specified in the node app package.json
- * Try reinstalling the node-i2c module if it doesn't work for the first time. 
+ * Try reinstalling the node-i2c module if it doesn't work for the first time.
  *
- * Changelog: 
- *	Feb 9 2014 - Initial definitions. 
- * 
+ * Changelog:
+ *	Aug 9 2015 - Initial definitions.
+ *
  */
 
-/* 
+/*
  * Constants for the AD 5933
  */
 
@@ -45,9 +45,9 @@ var R_IMAG1 =           0x97;
 var BLOCK_WRITE_CMD =       0xA0;
 var BLOCK_READ_CMD =        0xA1;
 var ADDRESS_POINTER_CMD =   0xB0
-// Control Register 
+// Control Register
 // See Table 9
-var INIT_WITH_START_FREQ =  0x10; 
+var INIT_WITH_START_FREQ =  0x10;
 var START_FREQ_SWEEP =      0x20;
 var INCREMENT_FREQ =        0x30;
 var REPEAT_FREQ =           0x40;
@@ -58,7 +58,7 @@ var STANDBY_MODE =          0xB0;
 var OUTPUT_2VPP =           0x0; // default
 var OUTPUT_200MVPP =        0x2;
 var OUTPUT_400MVPP =        0x4;
-var OUTPUT_1VPP =           0x6; 
+var OUTPUT_1VPP =           0x6;
 
 var PGA_GAIN1X =            0x1;
 var PGA_GAIN5X =            0x0; // default
@@ -81,29 +81,28 @@ var frequency_increment;
 var clock_rate = 16.78E6; // default on startup
 
 var i2c = require('i2c');
-var bs = require('bonescript'); 
+var bs = require('bonescript');
 
 function set_device_pwm(freq) {
-  //console.log("Setting freq: " + freq); 
+  //console.log("Setting freq: " + freq);
   bs.analogWrite('P8_13', 0, 2000, function(x) {
     if(x.err) {
-      console.log(x.err); 
+      console.log(x.err);
     }
   });
 
-  duty = 0.5; 
-  period = Math.round(1E9 / freq); 
+  duty = 0.5;
+  period = Math.round(1E9 / freq);
   if(freq != 0) {
     bs.analogWrite('P8_13', duty, freq, function(x) {
     if(x.err) {
-      console.log(x.err); 
+      console.log(x.err);
       }
     });
   }
 }
 
-var wire = new i2c(DEVICE_ADDRESS); 
-
+var wire = new i2c(DEVICE_ADDRESS,{device: '/dev/i2c-1'});
 // associates with first i2c bus by default
 
 var gf = require('./gainfactor');
@@ -132,24 +131,24 @@ function point_to_address(address) {
 
 function write_data_bytes(register, data) {
     // we use the block write command and use the length of the data array as
-    // the first byte in sequence. 
-    // the data is only a single number we use a simpler writebyte command. 
-    point_to_address(register); 
+    // the first byte in sequence.
+    // the data is only a single number we use a simpler writebyte command.
+    point_to_address(register);
     if(data.length == 1) {
-        wire.writeBytes(register, data, error_msg); 
+        wire.writeBytes(register, data, error_msg);
     }
     else {
-        var senddata = [data.length].concat(data); 
-        wire.writeBytes(BLOCK_WRITE_CMD, senddata, error_msg);  
+        var senddata = [data.length].concat(data);
+        wire.writeBytes(BLOCK_WRITE_CMD, senddata, error_msg);
     }
 }
 
 
 function set_device_standby() {
-	// Only R_CONTROL0 will be overwritten. 
+	// Only R_CONTROL0 will be overwritten.
 	//console.log("Standby");
 	var control_byte = STANDBY_MODE | output_range | pga_gain;
-	write_data_bytes(R_CONTROL0, [control_byte]); 
+	write_data_bytes(R_CONTROL0, [control_byte]);
 }
 
 function clock_is_internal() {
@@ -161,7 +160,7 @@ function clock_is_internal() {
     }
     else {
       console.log("err" + err);
-      return (undefined); 
+      return (undefined);
     }
   });
 }
@@ -169,13 +168,13 @@ function clock_is_internal() {
 function set_clock_source(src) {
   //console.log("Setting clock source:" + src);
 	var control_byte = src;
-	write_data_bytes(R_CONTROL1, [control_byte]); 
+	write_data_bytes(R_CONTROL1, [control_byte]);
 }
-	
+
 function reset_device() {
 	//console.log("Reboot");
 	var control_byte = RESET;
-	write_data_bytes(R_CONTROL1, [control_byte]); 
+	write_data_bytes(R_CONTROL1, [control_byte]);
 }
 
 function program_init() {
@@ -201,7 +200,7 @@ function increment_frequency_step() {
 function repeat_frequency() {
 	//console.log("Repeat frequency");
 	var control_byte = REPEAT_FREQ | output_range | pga_gain;
-	write_data_bytes(R_CONTROL0, [control_byte]); 
+	write_data_bytes(R_CONTROL0, [control_byte]);
 }
 
 function power_down_device() {
@@ -215,11 +214,11 @@ function read_status() {
     var status = {};
 	point_to_address(R_STATUS);
 	wire.readByte(function(err, res) {
-		if(err == null) { 
+		if(err == null) {
 			//console.log("My result: " + res);
 			status["Valid_Temp"] = (res & VALID_TEMP) == VALID_TEMP;
-    		status["Valid_Data"] = (res & VALID_DFT_DATA) == VALID_DFT_DATA; 
-    		status["Sweep_Complete"] = (res & SWEEP_COMPLETE) == SWEEP_COMPLETE; 
+    		status["Valid_Data"] = (res & VALID_DFT_DATA) == VALID_DFT_DATA;
+    		status["Sweep_Complete"] = (res & SWEEP_COMPLETE) == SWEEP_COMPLETE;
 		}
 		else {
 			error_msg(err);
@@ -228,7 +227,7 @@ function read_status() {
 	return (status);
 }
 
-// Mathematical functions 
+// Mathematical functions
 function get_frequency_code(start, clock) {
 	return (Math.round(start/(clock / 4) * Math.pow(2,27)));
 }
@@ -238,8 +237,8 @@ function get_frequency(code, clock) {
 }
 
 function twos_comp_to_dec(number) {
-	// works on 16 bit numbers. 
-	// check MSB 
+	// works on 16 bit numbers.
+	// check MSB
 	var value;
 	if(number > 32767) {
 		// number is negative
@@ -252,7 +251,7 @@ function twos_comp_to_dec(number) {
 }
 function mod_cplx(complex, calib) {
     var magnitude = Math.sqrt(Math.pow(complex.real,2) + Math.pow(complex.imag,2));
-    var impedance; 
+    var impedance;
     if(!calib) {
     	// if this is not a calibration run, calculate the actual impedance
     	var gainf = gf.get_GainFactor(test_frequency)[1];
@@ -262,12 +261,12 @@ function mod_cplx(complex, calib) {
     	// return only the magnitude
     	impedance = magnitude;
     }
-    
+
     return(impedance);
 }
 
 function arg_cplx(complex, calib) {
-    var phase; 
+    var phase;
     var arctan = Math.atan(complex.imag/complex.real);
     if(complex.real >= 0 && complex.imag >= 0) {
         // quadrant=1;
@@ -284,13 +283,13 @@ function arg_cplx(complex, calib) {
         // quadrant = 4
         arctan += Math.PI*2;
     }
-    arctan = arctan % (2*Math.PI); // do a modulo - 
-    
+    arctan = arctan % (2*Math.PI); // do a modulo -
+
     if(!calib) {
     	var sysphase = gf.get_GainFactor(test_frequency)[2];
     	arctan -= sysphase;
     }
-       	
+
 	return(arctan);
 }
 
@@ -302,21 +301,19 @@ function sleep(time, callback) {
     callback();
 }
 
-
-
 function measure_temperature() {
 	//console.log("measuring temp");
 	var temperature;
 	var control_byte = MEASURE_TEMP | output_range | pga_gain;
 	write_data_bytes(R_CONTROL0, [control_byte]);
-	//i2cdump("temp"); 
+	//i2cdump("temp");
 	// This should set off temperature measurement
 	sleep(10, function() {});
 	if(read_status()["Valid_Temp"]) {
 		point_to_address(R_TEMP0);
 		wire.readBytes(BLOCK_READ_CMD, 2, function(err, res) {
 			if(err == null) {
-				var temp_code = twos_comp_to_dec((res[0] << 8) | res[1]);
+				var temp_code = (res[0] << 8) | res[1];
 				//console.log("Temp code: " + temp_code);
 				if((temp_code >>13) &1) {
 					var temp = (temp_code - 16384)/32;
@@ -326,13 +323,13 @@ function measure_temperature() {
 				}
 			temperature = temp;
 			}
-				
+
 			else {
 				error_msg(err);
 			}
 		});
 	}
-	else { 
+	else {
 		// execute the same function with a small delay
 		 setTimeout(measure_temperature, 100);
 	}
@@ -342,20 +339,20 @@ function measure_temperature() {
 /******************************************
  *  Exported functions
  */
- 
- 
-/* 
+
+
+/*
  * Function to extract all information from the device and return it as
  * a JSON object
  */
 
 deviceParameters = function() {
-	
+
 	set_clock_source(INTERNAL_CLK);
-	
+
 	var parameters = {};
 	parameters["DeviceAddress"] = DEVICE_ADDRESS;
-	
+
 	// read the 24 bytes starting from address 0x80
 	point_to_address(R_CONTROL0);
 	wire.readBytes(BLOCK_READ_CMD, 12, function(err, res) {
@@ -367,7 +364,7 @@ deviceParameters = function() {
 							(res[2] << 16) | (res[3] << 8) | res[4], clock_rate);
 			parameters["Increment"] = get_frequency(
 							(res[5] << 16) | (res[6] << 8) | res[7], clock_rate);
-			parameters["NumIncrements"] = 
+			parameters["NumIncrements"] =
 							((res[8]&1) << 8) | res[9];
 			parameters["SettlingCyclesMult"] = (res[10]>>1)&3;
 			parameters["SettlingCycles"] = (res[10]&1) | res[11];
@@ -381,9 +378,9 @@ deviceParameters = function() {
 			error_msg(err);
 		}
 	});
-	
-	set_clock_source(clock_source); 
-	return(parameters);	
+
+	set_clock_source(clock_source);
+	return(parameters);
 }
 
 exports.deviceParameters = deviceParameters;
@@ -391,16 +388,16 @@ exports.deviceParameters = deviceParameters;
 function programSweep(sweepParameters) {
 	reset_device();
 	var data = [];
-	console.log("Clock: " + clock_rate);
+	//console.log("Clock: " + clock_rate);
 	var start = get_frequency_code(parseInt(sweepParameters.start), clock_rate);
-	var incr = get_frequency_code(parseInt(sweepParameters.increment), clock_rate); 
-	
-	console.log(sweepParameters);
+	var incr = get_frequency_code(parseInt(sweepParameters.increment), clock_rate);
+
+	//console.log(sweepParameters);
 	test_frequency = parseInt(sweepParameters.start);
-	console.log(sweepParameters.increment);
+	//console.log(sweepParameters.increment);
 	frequency_increment = parseInt(sweepParameters.increment);
-	console.log(sweepParameters.steps);
-	
+	//console.log(sweepParameters.steps);
+
 	data[0] = (start >> 16) & 0xFF;
 	data[1] = (start >> 8) & 0xFF;
 	data[2] = start & 0xFF;
@@ -409,22 +406,22 @@ function programSweep(sweepParameters) {
 	data[5] = incr & 0xFF;
 	data[6] = (parseInt(sweepParameters.steps) >> 8) & 0xFF;
 	data[7] = parseInt(sweepParameters.steps) & 0xFF;
-	data[8] = 0; 
+	data[8] = 0;
 	data[9] = 10; // 10 settling cycles - may change in a future version
-	
-	console.log("Prog: " + data);
-	
-	write_data_bytes(R_STARTF0, data); 
+
+	//console.log("Prog: " + data);
+
+	write_data_bytes(R_STARTF0, data);
 }
 
 
 
 function poll_for_valid_data() {
-	// waits for valid data and returns the valid status. 
+	// waits for valid data and returns the valid status.
 	var valid = false;
 	while(!valid) {
 		var status = read_status();
-		//console.log(status); 
+		//console.log(status);
 		sleep(5, function() {});
 		valid = status["Valid_Data"];
 	}
@@ -432,23 +429,23 @@ function poll_for_valid_data() {
 }
 
 function i2cdump(str) {
-    point_to_address(R_CONTROL0); 
+    point_to_address(R_CONTROL0);
     wire.readBytes(BLOCK_READ_CMD, 25, function(err, dat) {
         console.log(str);
         console.log(dat);
-        }); 
+        });
     }
 
 
 function getAvgOfReplicates(num) {
   // function will issue the repeat_frequency command
-  // until num readings are obtained. 
-  var reps = []; 
-  var ValidDate = false; 
+  // until num readings are obtained.
+  var reps = [];
+  var ValidDate = false;
   for(var count=0; count<num; count++) {
-    console.log("rep" + count); 
+    console.log("rep" + count);
     status = poll_for_valid_data();
-    
+
 		if(status["Valid_Data"]) {
 			point_to_address(R_REAL0);
 			wire.readBytes(BLOCK_READ_CMD, 4, function(err,res) {
@@ -457,7 +454,7 @@ function getAvgOfReplicates(num) {
 					complex.real = twos_comp_to_dec((res[0]<<8)|res[1]);
 					complex.imag = twos_comp_to_dec((res[2]<<8)|res[3]);
 					reps[count] = complex;
-					repeat_frequency(); 
+					repeat_frequency();
 			  }
 			  else {
 			    error_msg(err);
@@ -466,109 +463,121 @@ function getAvgOfReplicates(num) {
 			});
 		}
 	}
-	
-	var avg = {}; 
+
+	var avg = {};
 	avg.real = 0
-	avg.imag = 0; 
-	
+	avg.imag = 0;
+
 	for(var i=0; i<reps.length; i++) {
 	  avg.real += reps[i].real;
 	  avg.imag += reps[i].imag;
-	  console.log(avg.real)
-	  console.log(avg.imag)
-
 	}
-	
+
 	avg.real = avg.real/reps.length;
-	avg.imag = avg.imag/reps.length; 
-	console.log(avg.real)
-	console.log(avg.imag)
-	
+	avg.imag = avg.imag/reps.length;
+
 	return(avg);
 }
 
 function runSweep(sweepParameters, calib) {
 	// we pipe a calib parameter to the magnitude / phase calculation functions
-	var baseline = fs.readFileSync("/home/debian/NetworkAnalyzerBone/webapp/controller/fertile_training.csv", "utf8");
+	var baseline = fs.readFileSync("/home/debian/NetworkAnalyzer/webapp/controller/fertile_training.csv", "utf8");
 	baseline = baseline.split("\n");
-	console.log(baseline.length);
+	//console.log(baseline.length);
   baseline_dict = {};
   for(var i=1; i<baseline.length-1; i++) {
-      record = baseline[i].split(','); 
-      baseline_dict[record[0]] = {"zmean" : record[1], 
-                                  "zsd" : record[2], 
-                                  "phimean" : record[3], 
+      record = baseline[i].split(',');
+      baseline_dict[record[0]] = {"zmean" : record[1],
+                                  "zsd" : record[2],
+                                  "phimean" : record[3],
                                   "phisd" :record[4],
                                   }
       }
-  //console.log(baseline_dict); 
-    
-	var result = {}; 
+  //console.log(baseline_dict);
+  	sleep(500, function() {});
+	var result = {};
 	reset_device();
-	//i2cdump("reset"); 
-	
+	//i2cdump("reset");
+
+	if(sweepParameters.range == "VH") {
+	    clock_rate = 100E6; 
+	    set_device_pwm(clock_rate); 
+	    clock_source = EXTERNAL_CLK;
+	    set_clock_source(EXTERNAL_CLK); 
+	}
 	if(sweepParameters.range == "H") {
-	    set_device_pwm(0); 
-	    set_clock_source(INTERNAL_CLK); 
 	    clock_rate = 16.78E6; 
+	    set_device_pwm(clock_rate); 
+	    clock_source = EXTERNAL_CLK;
+	    set_clock_source(EXTERNAL_CLK); 
+	}
+	/*
+	if(sweepParameters.range == "H") {
+	    set_device_pwm(0);
+	    set_clock_source(INTERNAL_CLK);
+	    clock_rate = 16.78E6;
 	    clock_source = INTERNAL_CLK;
 	    }
+	    */
 	if(sweepParameters.range == "M") {
-	    clock_rate = 1E6; 
-	    set_device_pwm(clock_rate); 
+	    clock_rate = 1E6;
+	    set_device_pwm(clock_rate);
 	    clock_source = EXTERNAL_CLK;
-	    set_clock_source(EXTERNAL_CLK); 
+	    set_clock_source(EXTERNAL_CLK);
 	}
 	if(sweepParameters.range == "L") {
-	    clock_rate = 100E3; 
-	    set_device_pwm(clock_rate); 
+	    clock_rate = 100E3;
+	    set_device_pwm(clock_rate);
 	    clock_source = EXTERNAL_CLK;
-	    set_clock_source(EXTERNAL_CLK); 
+	    set_clock_source(EXTERNAL_CLK);
 	}
-	    
+
 	result["SweepParameters"] = sweepParameters;
 	result["TimeStarted"] = new Date().toString();
 	result["ImpedanceMod"] = [];
-	result["ImpedanceModAvg"] = []; 
-	result["ImpedanceModSd"] = []; 
+	result["ImpedanceModAvg"] = [];
+	result["ImpedanceModSd"] = [];
 	result["ImpedanceArg"] = [];
-	result["ImpedanceArgAvg"] = []; 
-	result["ImpedanceArgSd"] = []; 
+	result["ImpedanceArgAvg"] = [];
+	result["ImpedanceArgSd"] = [];
 	result["Frequency"] = [];
-	
-	programSweep(sweepParameters);
-	//i2cdump("sweep"); 
 
-	
-	//console.log("Var " + clock_source + "Internal?:" + clock_is_internal()); 
-	//console.log(clock_rate); 
-	
+	programSweep(sweepParameters);
+	sleep(500, function() {});
+	//i2cdump("sweep");
+
+
+	//console.log("Var " + clock_source + "Internal?:" + clock_is_internal());
+	//console.log(clock_rate);
+
 	console.log(deviceParameters());
-	
+
 	set_device_standby();
-	//i2cdump("stdby"); 
+	sleep(500, function() {});
+	//i2cdump("stdby");
 
 	program_init();
+	sleep(500, function() {});
 	//i2cdump("init");
-	
-	sleep(500, start_sweep);
+
+	start_sweep();
     //i2cdump("Start");
 	var counter = 0;
-	
+
 	var SweepComplete = false;
 	var ValidData = false;
 	var status = read_status();
-	
-	
+
+
 	while(!SweepComplete) {
 		status = poll_for_valid_data();
 		SweepComplete = status["Sweep_Complete"];
-		//console.log(status);	
-		
-		console.log("Step : " + counter); 
-		
-		complex = getAvgOfReplicates(3); 
-		
+		//console.log(status);
+
+		//console.log("Step : " + counter);
+
+		complex = getAvgOfReplicates(3);
+
 		result["Frequency"].push(test_frequency);
 		result["ImpedanceMod"].push(mod_cplx(complex, calib));
     if(baseline_dict[test_frequency.toString()] != undefined) {
@@ -578,14 +587,15 @@ function runSweep(sweepParameters, calib) {
       result["ImpedanceArgSd"].push(baseline_dict[test_frequency.toString()].phisd);
       }
 		result["ImpedanceArg"].push(arg_cplx(complex, calib));
-					
+
 		counter++;
+		sleep(200, function() {});
 		increment_frequency_step();
-		
-	}	
+
+	}
 	result["Temperature"] = measure_temperature();
-	power_down_device();		
-	set_device_pwm(0); 	
+	power_down_device();
+	set_device_pwm(0);
 	console.log("Done!");
 	return(result);
 }
@@ -595,9 +605,9 @@ exports.runSweep = runSweep;
 
 exports.powerdown = power_down_device;
 exports.reset = reset_device;
- 
+
 exports.getGainFactor = function(sweepparams) {
-	console.log(sweepparams);
+	//console.log(sweepparams);
 	var results = runSweep(sweepparams, calibrate=true);
 	return(results);
 }

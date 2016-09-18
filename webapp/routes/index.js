@@ -5,7 +5,8 @@
 var i2cbase = require('../controller/i2cbase');
 var fs = require('fs');
 var datapath = '/home/debian/ImpedanceData/';
-//var calibrate = require('../controller/calibrate.js');
+var cal_path = '/home/debian/NetworkAnalyzer/webapp/controller'
+
 
 /*
  * GET home page.
@@ -32,12 +33,60 @@ exports.refresh = function(req, res) {
  */
 
 exports.sweep = function(req, res) {
+
   console.log(JSON.stringify(req.body));
   var sweepStats = i2cbase.runSweep(req.body, false);
   console.log(sweepStats);
   res.json(sweepStats);
   };
 
+
+/*
+ *  POST request for running a calibration
+ */
+ exports.calibrate = function(req, res) {
+    var file = fs.createWriteStream('/home/debian/NetworkAnalyzer/webapp/controller/SmoothCal2.txt');
+
+	var myparams = {range:"L",start:"20",increment:"10",steps:"58"};
+
+	var result = i2cbase.getGainFactor(myparams, true);
+
+	for(var j=0; j<myparams.steps; j++) {
+	file.write(result.Frequency[j] + "," + 
+			1/(req.body*result.ImpedanceMod[j]) +","+ 
+			result.ImpedanceArg[j] + "\n");
+		}
+
+	myparams = { range: 'M', start: '620', increment: '50', steps: '107' };
+	result = i2cbase.getGainFactor(myparams, true);
+
+	for(var j=0; j<myparams.steps; j++) {
+	file.write(result.Frequency[j] + "," + 
+			1/(req.body*result.ImpedanceMod[j]) +","+ 
+			result.ImpedanceArg[j] + "\n");	
+		}
+
+	myparams = {range:"H",start:"6000",increment:"500",steps:"187"}
+	result = i2cbase.getGainFactor(myparams, true);
+
+	for(var j=0; j<myparams.steps; j++) {
+		file.write(result.Frequency[j] + "," + 
+				1/(req.body*result.ImpedanceMod[j]) +","+ 
+				result.ImpedanceArg[j] + "\n");
+		}
+
+	myparams = {range:"VH",start:"100000",increment:"1000",steps:"201"}
+	result = i2cbase.getGainFactor(myparams, true);
+
+	for(var j=0; j<myparams.steps; j++) {
+		file.write(result.Frequency[j] + "," + 
+				1/(req.body*result.ImpedanceMod[j]) +","+ 
+				result.ImpedanceArg[j] + "\n");
+		}
+
+	file.end();
+	res.end('Done!');
+};
 
 
 /* 

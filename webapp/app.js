@@ -25,11 +25,6 @@ app.use(app.router);
 app.use(express.directory(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// development only
-if ('development' == app.get('env')) {
-  app.use(express.errorHandler());
-  app.locals.pretty = true;
-}
 
 // GET calls - no changes to data on server
 app.get('/', routes.index);
@@ -39,7 +34,7 @@ app.get('/refresh', routes.refresh);
 app.post('/sweep/', routes.sweep);
 
 app.post('/save/', routes.save);
-//app.post('/calibrate/', routes.calibrate);
+app.post('/calibrate/', routes.calibrate);
 
 
 

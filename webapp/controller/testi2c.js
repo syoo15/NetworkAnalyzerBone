@@ -94,7 +94,11 @@ var clock_rate = 16.78E6; // default on startup
 
 var i2c = require('i2c');
 var bs = require('bonescript'); 
+var fs = require('fs');
 
+//var zcal = 264.5;
+var zcal = 100.2; 
+var file = fs.createWriteStream('./SmoothCal1.txt');
 
 function set_device_pwm(freq) {
   //console.log("Setting freq: " + freq); 
@@ -115,7 +119,7 @@ function set_device_pwm(freq) {
   }
 }
 
-var wire = new i2c(DEVICE_ADDRESS, {device: '/dev/i2c-2'}); 
+var wire = new i2c(DEVICE_ADDRESS, {device: '/dev/i2c-1'}); 
 // associates with first i2c bus by default
 
 var gf = require('./gainfactor');
@@ -382,8 +386,8 @@ function measure_temperature() {
 	return(temperature);
 }
 
-//wire.writeByte(0x82, function(e) {});
-//wire.readBytes(0xa1, 10, function(e, r) {console.log(r);});
+wire.writeByte(0x82, function(e) {});
+wire.readBytes(0xa1, 10, function(e, r) {console.log(r);});
 
 /******************************************
  *  Exported functions

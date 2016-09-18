@@ -2,8 +2,7 @@ var i2c = require('./i2cbase');
 
 var fs = require('fs');
 
-//var zcal = 264.5;
-var zcal = 100.2; 
+var zcal = 264.5; 
 
 var file = fs.createWriteStream('./SmoothCal2.txt');
 
