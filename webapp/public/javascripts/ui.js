@@ -7,6 +7,7 @@ $(document).ready(function() {
 
     refreshDate();
     var chart;
+    var calData = [];
     var chartData = [
 		{
 			"f": 50,
@@ -31,113 +32,6 @@ $(document).ready(function() {
 		}
 	];
 
-
-/*
-
-	AmCharts.ready(function () {
-        //console.log("Executing amcharts");
-        // XY CHART
-        chart = new AmCharts.AmXYChart();
-        chart.pathToImages = "http://www.amcharts.com/lib/3/images/";
-        chart.dataProvider = chartData;
-        chart.startDuration = 1;
-
-        // AXES
-        // Frequency
-        var fAxis = new AmCharts.ValueAxis();
-        fAxis.title = "Frequency (Hz)";
-        fAxis.position = "bottom";
-        fAxis.dashLength = 1;
-        fAxis.axisAlpha = 0;
-        fAxis.autoGridCount = true;
-        fAxis.logarithmic = true;
-        chart.addValueAxis(fAxis);
-
-        // Impedance
-        var zAxis = new AmCharts.ValueAxis();
-        zAxis.position = "left";
-        zAxis.title = "|Impedance| (ohm)";
-        zAxis.dashLength = 1;
-        zAxis.titleColor = "#FF6600";
-        zAxis.axisAlpha = 0;
-        zAxis.autoGridCount = true;
-        zAxis.logarithmic = true;
-        chart.addValueAxis(zAxis);
-
-        // Phase
-        var pAxis = new AmCharts.ValueAxis();
-        pAxis.position = "right";
-        pAxis.title = "Phase (rad)";
-        pAxis.dashLength = 1;
-        pAxis.axisAlpha = 0;
-        pAxis.titleColor = "#69A55C";
-        pAxis.autoGridCount = true;
-        //yAxis.logarithmic = true;
-        chart.addValueAxis(pAxis);
-
-        // GRAPHS
-        // triangles up
-        var graph1 = new AmCharts.AmGraph();
-        graph1.yAxis = zAxis;
-        graph1.lineColor = "#FF6600";
-        graph1.balloonText = "f:[[x]] Z:[[y]]";
-        graph1.xField = "f";
-        graph1.yField = "z";
-        graph1.lineAlpha = 0.7;
-        graph1.lineThickness = 2;
-        graph1.bullet = "round";
-        graph1.bulletSize = 4
-        chart.addGraph(graph1);
-
-        var graph11 = new AmCharts.AmGraph();
-        graph11.yAxis = zAxis;
-        graph11.lineColor = "#FF6600";
-        //graph11.balloonText = "f:[[x]] Z:[[y]]";
-        graph11.xField = "f";
-        graph11.yField = "zmean";
-        graph11.lineAlpha = 0.3;
-        graph11.lineThickness = 1;
-        graph11.bullet = "none";
-        //graph11.bulletSize = 3
-        chart.addGraph(graph11);
-
-        var graph2 = new AmCharts.AmGraph();
-        graph2.yAxis = pAxis;
-        graph2.lineColor = "#69A55C";
-        graph2.balloonText = "f:[[x]] Phi:[[y]]";
-        graph2.xField = "f";
-        graph2.yField = "phi";
-        graph2.lineAlpha = 0.7;
-        graph2.lineThickness = 2;
-        graph2.bullet = "none";
-        chart.addGraph(graph2);
-
-        var graph21 = new AmCharts.AmGraph();
-        graph21.yAxis = pAxis;
-        graph21.lineColor = "#69A55C";
-        //graph21.balloonText = "f:[[x]] Phi:[[y]]";
-        graph21.xField = "f";
-        graph21.yField = "phimean";
-        graph21.lineAlpha = 0.3;
-        graph21.lineThickness = 1;
-        graph21.bullet = "none";
-        chart.addGraph(graph21);
-
-
-        // CURSOR
-        var chartCursor = new AmCharts.ChartCursor();
-        chart.addChartCursor(chartCursor);
-
-        // SCROLLBAR
-
-        //var chartScrollbar = new AmCharts.ChartScrollbar();
-        //chart.addChartScrollbar(chartScrollbar);
-
-        // WRITE
-        chart.write("gaindiv");
-	});
-
-*/
 
     // Rendering sample graph for the first time
     var line = prettyline()
@@ -432,7 +326,7 @@ $(document).ready(function() {
 
          verticalLegend = d3.svg.legend().labelFormat("none").cellPadding(5).orientation("vertical").units("Legends").cellWidth(25).cellHeight(18).inputScale(legendColor).cellStepping(10);
 
-         d3.select("svg").append("g").attr("transform", "translate(665,35)").attr("class", "legend").call(verticalLegend);
+         d3.select("svg").append("g").attr("transform", "translate(660,35)").attr("class", "legend").call(verticalLegend);
 
     // Define 'div' for tooltips
          var div = d3.select("body")
@@ -524,14 +418,21 @@ $(document).ready(function() {
                 $("#statustext").html("Device address: " +
                 	data.DeviceAddress + " Temperature: " + data.Temperature + "&deg;C");
                 $("#StartFreqL").val(20);
-                $("#IncrFreqL").val(30);
-                $("#NumStepsL").val(19);
-                $("#StartFreqM").val(1000);            // 620, 100 50 = Default
-                $("#IncrFreqM").val(1000);
-                $("#NumStepsM").val(4);
+                $("#IncrFreqL").val(10);
+                $("#NumStepsL").val(58);
+                $("#StartFreqLM").val(300);
+                $("#IncrFreqLM").val(50);
+                $("#NumStepsLM").val(13);
+                $("#StartFreqM").val(620);            // 620, 100 50 = Default
+                $("#IncrFreqM").val(50);
+                $("#NumStepsM").val(107);
                 $("#StartFreqH").val(6000);           // 6000, 500, 187 = Default
-                $("#IncrFreqH").val(1000);
-                $("#NumStepsH").val(23);
+                $("#IncrFreqH").val(500);
+                $("#NumStepsH").val(187);
+                $("#StartFreqVH").val(100000);           
+                $("#IncrFreqVH").val(1000);
+                $("#NumStepsVH").val(201);
+                $("#Cal_Val").val(100);
             }
             refreshDate();
         });
@@ -539,8 +440,11 @@ $(document).ready(function() {
 
     refresh();
 
-/*
-    // Button for Calibration 
+
+    /*
+     *  Calibration function... Input your calibration resistor value to run
+     */ 
+
     $("#calibration").click(function(){
         var name = $("#Cal_Val").val();
       if (name == undefined | name == "") {
@@ -549,46 +453,19 @@ $(document).ready(function() {
       else{
           var btn = $(this);
           btn.button('Running calibration');
-          var i2c = require('./i2cbase');
-          var fs = require('fs');
           var zcal = $("#Cal_Val").val();
-          var file = fs.createWriteStream('./SmoothCal2.txt');
-          console.log(zcal);
-      $(".progress-bar").attr("style", "width: 20%;");
-        var myparams = {range:"L",start:"20",increment:"30",steps:"19"};
-        var result = i2c.getGainFactor(myparams, true);
-        for(var j=0; j<myparams.steps; j++) {
-            file.write(result.Frequency[j] + "," + 
-            1/(zcal*result.ImpedanceMod[j]) +","+ 
-            result.ImpedanceArg[j] + "\n");
-            }
-      $(".progress-bar").attr("style", "width: 55%;");
-          myparams = { range: 'M', start: '620', increment: '100', steps: '50' };
-          result = i2c.getGainFactor(myparams, true);
 
-            for(var j=0; j<myparams.steps; j++) {
-              file.write(result.Frequency[j] + "," + 
-                  1/(zcal*result.ImpedanceMod[j]) +","+ 
-                  result.ImpedanceArg[j] + "\n");
-              }
-      $(".progress-bar").attr("style", "width: 100%;");
-         myparams = {range:"H",start:"6000",increment:"500",steps:"187"}
-         result = i2c.getGainFactor(myparams, true);
+      $("#calpro").attr("style", "width: 50%;");
+       $.post('/calibrate/', zcal,
+        function(response, status) {
+          $("#calpro").attr("style", "width: 100%;");
+          btn.button('reset');
+          $("#calpro").attr("style", "width: 0%;");
+          alert("Calibration is Done! Your calibration value is:" + zcal);
+          });
+      };
+   });
 
-            for(var j=0; j<myparams.steps; j++) {
-              file.write(result.Frequency[j] + "," + 
-                  1/(zcal*result.ImpedanceMod[j]) +","+ 
-                  result.ImpedanceArg[j] + "\n");
-              }
-
-            file.end();
-            btn.button('reset');
-            $(".progress-bar").attr("style", "width: 0%;");
-            alert("Calibration is completed!");
-            };
-      });
-
-*/
 
     $("#ButtonSave").click(function() {
     	var filename = $("#SaveFileName").val();
@@ -615,37 +492,41 @@ $(document).ready(function() {
   $("#ButtonRefresh").click(refresh);
 
 
-// Button for Sweep Low
+  // Button for Sweep Low
     $("#ButtonSweepLow").click(function() {
       var filename = $("#SaveFileName").val();
       if (filename == undefined | filename == "") {
         alert("No file name chosen");
       }
       else{
-        var btn = $(this);
-        btn.button('Running sweep');
-    	$(".progress-bar").attr("style", "width: 33%;");
-        var start = $("#StartFreqL").val();
-        var increment = $("#IncrFreqL").val();
-        var numsteps = $("#NumStepsL").val();
-        var data = {"range":"L",
-                    "start":parseInt(start),
-                    "increment":parseInt(increment),
-                    "steps":parseInt(numsteps)};
-        $.post('/sweep/', data,
-            function(response, status) {
-            //console.log(response);
-            // function to create the chart data
-            chartData.length=0;
-			for(var i=0; i<response.SweepParameters.steps; i++) {
-				var obj = {"f":response.Frequency[i],
-						   "z":response.ImpedanceMod[i],
-						   "phi":response.ImpedanceArg[i]}
-				chartData.push(obj);
-			}
-            $(".progress-bar").attr("style", "width: 100%;");
-            //console.log(chartData);
-            
+      var date = new Date();
+          filename = filename + "_" + date.toISOString();
+          var btn = $(this);
+      btn.button('Running sweep');
+      $(".progress-bar").attr("style", "width: 25%;");
+      var start = $("#StartFreqL").val();
+      var increment = $("#IncrFreqL").val();
+      var numsteps = $("#NumStepsL").val();
+      var data = {"range":"L",
+            "start":parseInt(start),
+            "increment":parseInt(increment),
+            "steps":parseInt(numsteps)};
+      $.post('/sweep/', data,
+        function(response, status) {
+        console.log(response);
+        // function to create the chart data
+        chartData.length=0;
+        for(var i=0; i<response.SweepParameters.steps; i++) {
+          var obj = {"f":response.Frequency[i],
+                 "z":response.ImpedanceMod[i],
+                 "phi":response.ImpedanceArg[i],
+                 "zmean":response.ImpedanceModAvg[i],
+                 "zsd":response.ImpedanceModSd[i],
+                 "phimean":response.ImpedanceArgAvg[i],
+                 "phisd":response.ImpedanceArgSd[i]}
+          chartData.push(obj);
+        }
+
             // Empty any child in Div element and Render new graph in Div
             $("#gaindiv").empty();
 
@@ -656,9 +537,148 @@ $(document).ready(function() {
                 .data(chartData)
                 .render();
 
-            btn.button('reset');
-            $(".progress-bar").attr("style", "width: 0%;");
+
+            var dat = {};
+            dat["chartdata"] = chartData;
+            dat["Name"] = filename;
+            console.log(dat);
+
+            $.post('/save/', dat,
+              function(response, status) {
+                console.log(response);
+                if(response.save) { alert("File saved successfully"); }
+                if(response.error != undefined) { alert(response.error); }
+                btn.button('reset');
+                $(".progress-bar").attr("style", "width: 0%;");
+                });
             });
+      }
+    });
+
+    // Sweep Very High Button
+    $("#ButtonSweepMiddle").click(function() {
+
+      var filename = $("#SaveFileName").val();
+      if (filename == undefined | filename == "") {
+        alert("No file name chosen");
+      }
+      else {
+        var date = new Date();
+        filename = filename + "_" + date.toISOString();
+        var btn = $(this);
+        btn.button('Running sweep');
+      
+      $(".progress-bar").attr("style", "width: 50%;");
+        var start = $("#StartFreqM").val();
+        var increment = $("#IncrFreqM").val();
+        var numsteps = $("#NumStepsM").val();
+        var data = {"range": "M",
+                    "start":parseInt(start),
+                    "increment":parseInt(increment),
+                    "steps":parseInt(numsteps)};
+        $.post('/sweep/', data,
+            function(response, status) {
+            //console.log(response);
+            // function to create the chart data
+            chartData.length=0;
+      for(var i=0; i<response.SweepParameters.steps; i++) {
+          var obj = {"f":response.Frequency[i],
+                     "z":response.ImpedanceMod[i],
+                     "phi":response.ImpedanceArg[i]}
+                     chartData.push(obj);
+                     }
+            $(".progress-bar").attr("style", "width: 80%;");
+            //console.log(chartData);
+
+
+            // Empty any child in Div element and Render new graph in Div
+            $("#gaindiv").empty();
+
+            // Remove any existing tooltips from the last measurement
+            $(".tooltip").remove();
+            var line = prettyline()
+                .$el(d3.select("#gaindiv"))
+                .data(chartData)
+                .render();
+
+             var dat = {};
+                dat["chartdata"] = chartData;
+                dat["Name"] = filename;
+                //console.log(dat);
+                $(".progress-bar").attr("style", "width: 100%;");
+                $.post('/save/', dat,
+                  function(response, status) {
+                console.log(response);
+                if(response.save) { alert("File saved successfully"); }
+                if(response.error != undefined) { alert(response.error); }
+                btn.button('reset');
+                $(".progress-bar").attr("style", "width: 0%;");
+                });
+           
+            });
+      }
+    });   
+
+      // Specialized function for sweeping 1k to 30k.
+    $("#ButtonSweepVHigh").click(function() {
+
+      var filename = $("#SaveFileName").val();
+      if (filename == undefined | filename == "") {
+        alert("No file name chosen");
+      }
+        else {
+          var date = new Date();
+          filename = filename + "_" + date.toISOString();
+          var btn = $(this);
+      btn.button('Running sweep');
+      $(".progress-bar").attr("style", "width: 30%;");
+      var start = $("#StartFreqVH").val();
+      var increment = $("#IncrFreqVH").val();
+      var numsteps = $("#NumStepsVH").val();
+      var data = {"range":"VH",
+            "start":parseInt(start),
+            "increment":parseInt(increment),
+            "steps":parseInt(numsteps)};
+      $.post('/sweep/', data,
+        function(response, status) {
+        console.log(response);
+        // function to create the chart data
+        chartData.length=0;
+        for(var i=0; i<response.SweepParameters.steps; i++) {
+          var obj = {"f":response.Frequency[i],
+                 "z":response.ImpedanceMod[i],
+                 "phi":response.ImpedanceArg[i],
+                 "zmean":response.ImpedanceModAvg[i],
+                 "zsd":response.ImpedanceModSd[i],
+                 "phimean":response.ImpedanceArgAvg[i],
+                 "phisd":response.ImpedanceArgSd[i]}
+          chartData.push(obj);
+        }
+            // Empty any child in Div element and Render new graph in Div
+            $("#gaindiv").empty();
+
+            // Remove any existing tooltips from the last measurement
+            $(".tooltip").remove();
+            var line = prettyline()
+                .$el(d3.select("#gaindiv"))
+                .data(chartData)
+                .render();
+
+            $(".progress-bar").attr("style", "width: 90%;");
+            var dat = {};
+            dat["chartdata"] = chartData;
+            dat["Name"] = filename;
+            console.log(dat);
+
+            $.post('/save/', dat,
+              function(response, status) {
+                console.log(response);
+                if(response.save) { alert("File saved successfully"); }
+                if(response.error != undefined) { alert(response.error); }
+                btn.button('reset');
+                $(".progress-bar").attr("style", "width: 0%;");
+            });
+        });
       }
     });
 
@@ -675,7 +695,7 @@ $(document).ready(function() {
         var btn = $(this);
         btn.button('Running sweep');
     	
-      $(".progress-bar").attr("style", "width: 33%;");
+      $(".progress-bar").attr("style", "width: 50%;");
         var start = $("#StartFreqH").val();
         var increment = $("#IncrFreqH").val();
         var numsteps = $("#NumStepsH").val();
@@ -694,7 +714,7 @@ $(document).ready(function() {
 						         "phi":response.ImpedanceArg[i]}
 				             chartData.push(obj);
 			               }
-            $(".progress-bar").attr("style", "width: 100%;");
+            $(".progress-bar").attr("style", "width: 80%;");
             //console.log(chartData);
 
 
@@ -784,12 +804,8 @@ $(document).ready(function() {
                                        "phisd":response.ImpedanceArgSd[i]}
                                     chartData.push(obj);
               }
-            //chart.validateData();                                 // chart rendering for AMchart
-            //chart.validateNow();
-            //alert("Trying to save file: " + filename);
-            
-            // Empty any child in Div element and Render new graph in Div
 
+            // Empty any child in Div element and Render new graph in Div
             $("#gaindiv").empty();
 
             // Remove any existing tooltips from the last measurement
@@ -816,94 +832,6 @@ $(document).ready(function() {
         });
       });
       }
-    });
-
-// Sweep Lo and Hi
-    $("#ButtonSweepBoth").click(function() {
-
-    	var filename = $("#SaveFileName").val();
-    	if (filename == undefined | filename == "") {
-    		alert("No file name chosen");
-    	}
-        else {
-        	var date = new Date();
-        	filename = filename + "_" + date.toISOString();
-        	var btn = $(this);
-			btn.button('Running sweep');
-			$(".progress-bar").attr("style", "width: 25%;");
-			var start = $("#StartFreqL").val();
-			var increment = $("#IncrFreqL").val();
-			var numsteps = $("#NumStepsL").val();
-			var data = {"range":"L",
-						"start":parseInt(start),
-						"increment":parseInt(increment),
-						"steps":parseInt(numsteps)};
-			$.post('/sweep/', data,
-				function(response, status) {
-				console.log(response);
-				// function to create the chart data
-				chartData.length=0;
-				for(var i=0; i<response.SweepParameters.steps; i++) {
-					var obj = {"f":response.Frequency[i],
-							   "z":response.ImpedanceMod[i],
-							   "phi":response.ImpedanceArg[i],
-							   "zmean":response.ImpedanceModAvg[i],
-							   "zsd":response.ImpedanceModSd[i],
-							   "phimean":response.ImpedanceArgAvg[i],
-							   "phisd":response.ImpedanceArgSd[i]}
-					chartData.push(obj);
-				}
-				$(".progress-bar").attr("style", "width: 50%;");
-				start = $("#StartFreqH").val();
-				increment = $("#IncrFreqH").val();
-				numsteps = $("#NumStepsH").val();
-				data = {"range": "H",
-						"start":parseInt(start),
-						"increment":parseInt(increment),
-						"steps":parseInt(numsteps)};
-				$.post('/sweep/', data,
-                function(response, status) {
-                $(".progress-bar").attr("style", "width: 90%;");
-              console.log(response);
-              for(var i=0; i<response.SweepParameters.steps; i++) {
-                            var obj = {"f":response.Frequency[i],
-                                       "z":response.ImpedanceMod[i],
-                                       "phi":response.ImpedanceArg[i],
-                                       "zmean":response.ImpedanceModAvg[i],
-                                       "zsd":response.ImpedanceModSd[i],
-                                       "phimean":response.ImpedanceArgAvg[i],
-                                       "phisd":response.ImpedanceArgSd[i]}
-                                    chartData.push(obj);
-              }
-			     
-           // Empty any child in Div element and Render new graph in Div
-            $("#gaindiv").empty();
-
-            // Remove any existing tooltips from the last measurement
-            $(".tooltip").remove();
-
-            var line = prettyline()
-                .$el(d3.select("#gaindiv"))
-                .data(chartData)
-                .render();
-
-				 		//alert("Trying to save file: " + filename);
-						var dat = {};
-						dat["chartdata"] = chartData;
-						dat["Name"] = filename;
-						//console.log(dat);
-
-						$.post('/save/', dat,
-							function(response, status) {
-								console.log(response);
-								if(response.save) { alert("File saved successfully"); }
-								if(response.error != undefined) { alert(response.error); }
-								btn.button('reset');
-								$(".progress-bar").attr("style", "width: 0%;");
-						});
-				});
-			});
-    	}
     });
 
     var check_filename = function() {
@@ -944,30 +872,30 @@ $(document).ready(function() {
 			filename = filename + "_" + date.toISOString();
 			var btn = $(this);
 			  btn.button('Running sweep');
-			  $(".progress-bar").attr("style", "width: 20%;");
-			  var start = $("#StartFreqL").val();
-			  var increment = $("#IncrFreqL").val();
-			  var numsteps = $("#NumStepsL").val();
-			  var data = {"range":"L",
-                    "start":parseInt(start),
-                    "increment":parseInt(increment),
-                    "steps":parseInt(numsteps)};
-			  $.post('/sweep/', data,
-				  function(response, status) {
-				  console.log(response);
-				  // function to create the chart data
-				  chartData.length=0;
-				  for(var i=0; i<response.SweepParameters.steps; i++) {
-					var obj = {"f":response.Frequency[i],
-							   "z":response.ImpedanceMod[i],
-							   "phi":response.ImpedanceArg[i],
-							   "zmean":response.ImpedanceModAvg[i],
-							   "zsd":response.ImpedanceModSd[i],
-							   "phimean":response.ImpedanceArgAvg[i],
-							   "phisd":response.ImpedanceArgSd[i]}
-					chartData.push(obj);
-				}
-				  $(".progress-bar").attr("style", "width: 50%;");
+			   $(".progress-bar").attr("style", "width: 10%;");
+      var start = $("#StartFreqL").val();
+      var increment = $("#IncrFreqL").val();
+      var numsteps = $("#NumStepsL").val();
+      var data = {"range":"L",
+            "start":parseInt(start),
+            "increment":parseInt(increment),
+            "steps":parseInt(numsteps)};
+      $.post('/sweep/', data,
+        function(response, status) {
+        console.log(response);
+        // function to create the chart data
+        chartData.length=0;
+        for(var i=0; i<response.SweepParameters.steps; i++) {
+          var obj = {"f":response.Frequency[i],
+                 "z":response.ImpedanceMod[i],
+                 "phi":response.ImpedanceArg[i],
+                 "zmean":response.ImpedanceModAvg[i],
+                 "zsd":response.ImpedanceModSd[i],
+                 "phimean":response.ImpedanceArgAvg[i],
+                 "phisd":response.ImpedanceArgSd[i]}
+          chartData.push(obj);
+        }
+				  $(".progress-bar").attr("style", "width: 40%;");
 				  start = $("#StartFreqM").val();
 				  increment = $("#IncrFreqM").val();
 				  numsteps = $("#NumStepsM").val();
@@ -977,7 +905,7 @@ $(document).ready(function() {
 						  "steps":parseInt(numsteps)};
 				  $.post('/sweep/', data,
 					  function(response, status) {
-						  $(".progress-bar").attr("style", "width: 66%;");
+						  $(".progress-bar").attr("style", "width: 60%;");
 						  console.log(response);
 						  for(var i=0; i<response.SweepParameters.steps; i++) {
 						var obj = {"f":response.Frequency[i],
@@ -999,7 +927,6 @@ $(document).ready(function() {
 						"steps":parseInt(numsteps)};
 					$.post('/sweep/', data,
 					      function(response, status) {
-					      $(".progress-bar").attr("style", "width: 90%;");
 						  console.log(response);
 						  for(var i=0; i<response.SweepParameters.steps; i++) {
                             var obj = {"f":response.Frequency[i],
@@ -1011,7 +938,28 @@ $(document).ready(function() {
                                        "phisd":response.ImpedanceArgSd[i]}
                                     chartData.push(obj);
 						  }
-						  
+              $(".progress-bar").attr("style", "width: 90%;");
+      var start = $("#StartFreqVH").val();
+      var increment = $("#IncrFreqVH").val();
+      var numsteps = $("#NumStepsVH").val();
+      var data = {"range":"VH",
+            "start":parseInt(start),
+            "increment":parseInt(increment),
+            "steps":parseInt(numsteps)};
+      $.post('/sweep/', data,
+        function(response, status) {
+        console.log(response);
+
+        for(var i=0; i<response.SweepParameters.steps; i++) {
+          var obj = {"f":response.Frequency[i],
+                 "z":response.ImpedanceMod[i],
+                 "phi":response.ImpedanceArg[i],
+                 "zmean":response.ImpedanceModAvg[i],
+                 "zsd":response.ImpedanceModSd[i],
+                 "phimean":response.ImpedanceArgAvg[i],
+                 "phisd":response.ImpedanceArgSd[i]}
+          chartData.push(obj);
+        }
 					 // Empty any child in Div element and Render new graph in Div
             $("#gaindiv").empty();
 
@@ -1038,6 +986,7 @@ $(document).ready(function() {
 								$(".progress-bar").attr("style", "width: 0%;");
 					      });
 						});
+        });
 				});
 			});
     	}
