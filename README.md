@@ -273,9 +273,16 @@ reboot
 ```
 On rebooting of the system, BeagleBone will always run NetworkAnalyzer app on port 3030. <br/>
 
+# Connect to WiFi
+Wifi SSID = beagleNet or whatever name you have chosen to be
+Select static IP
+Type in 192.168.4.2 in static IP section
+Others are not required to fill in
+Open an web browser
+Access to the web server @ 192.168.4.1:3030
 
 # Trouble Shooting
-Static IP: Connect to 192.168.4.2 and web app @ 192.168.4.1:3030
+
 <br/> When temperature is not correctly shown in web application:
 ```
 i2cdetect -r 1
