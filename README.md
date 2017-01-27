@@ -276,7 +276,7 @@ On rebooting of the system, BeagleBone will always run NetworkAnalyzer app on po
 # Connect to WiFi
 Wifi SSID = beagleNet or whatever name you have chosen to be. (PWD for JBS sensor = beaglebone)
 Select static IP. 
-Type in 192.168.4.2 in static IP section.(For iphone, IP: 192.168.4.4, Subnetmask: 255.255.255.0, Router: 192.168.4.1, DNS: 192.168.4.1)
+Type in 192.168.4.2 (4.4 also works) in static IP section.(For iphone, IP: 192.168.4.4, Subnetmask: 255.255.255.0, Router: 192.168.4.1, DNS: 192.168.4.1)
 Others are not required to fill in. (For Android, when alertdialog asks this wifi has no internet --> check the box saying "Do not ask this message again")
 Open an web browser.
 Access to the web server @ 192.168.4.1:3030
