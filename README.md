@@ -303,7 +303,8 @@ Correct output: #   !   /   b   i   n   /   b   a   s   h  \n
 ```
 Fix this by..
 ```
-cp netanalyzer.sh _p4 && tr -d '\r' < _p4 > scrinetanalyzer.shpt && rm _p4
+cp netanalyzer.sh _p4 && tr -d '\r' < _p4 > netanalyzer.sh && rm _p4
+
 ```
 
 
