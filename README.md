@@ -294,6 +294,19 @@ i2cdump -y 1 0x0D
 to probe registers of the AD5933 whether BBB can read or not
 ```
 
+<br/> An issue regarding netanalyzer.sh file not recognized by the debian
+```
+head -1 netanalyzer.sh | od -c
+
+Incorrect output: #   !   /   b   i   n   /   b   a   s   h  \r  \n
+Correct output: #   !   /   b   i   n   /   b   a   s   h  \n
+```
+Fix this by..
+```
+cp netanalyzer.sh _p4 && tr -d '\r' < _p4 > scrinetanalyzer.shpt && rm _p4
+```
+
+
 # Other References
 [RTL8192CU Driver](http://askubuntu.com/questions/509498/is-there-a-standard-wifi-driver-for-the-edimax-ew-7811un)
 [Installing Kernel](http://beagleboard.org/project/fbtft-drivers-for-linux-38/)
