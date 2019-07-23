@@ -137,7 +137,7 @@ iface eth0 inet dhcp
    # wpa-ssid "Ohyes”
    # wpa-ssid "IllinoisNet"
    # identity "syoo15"
-   # wpa-psk  "zelda611"
+   # wpa-psk  "123456"
 
 iface usb0 inet static
     address 192.168.7.2
